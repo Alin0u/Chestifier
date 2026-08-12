@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "chestifier",
+  "version": "${version}",
+  "environment": "client",
+  "entrypoints": {
+    "client": [ "dev.alinou.chestifier.Chestifier" ],
+    "modmenu": [ "dev.alinou.chestifier.MMConfigurationHandler" ]
+  },
+  "mixins": [
+    "mixins.chestifier.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.11"
+  },
+  "recommends": {
+    "modmenu": "*"
+  },
+  "name": "Chestifier",
+  "description": "Move stuff between inventory and chests, sort them, and search items",
+  "icon": "icon.png",
+  "authors": ["alinou"],
+  "contact": {},
+  "license": "MIT"
+}

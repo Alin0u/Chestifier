@@ -1,0 +1,29 @@
+{
+    "key.categories.chestifier":"Chestifier",
+    "chestifier.sortchest" : "Sort chest",
+    "chestifier.sortplayer": "Sort inventory",
+    "chestifier.matchdown": "Move matches to player",
+    "chestifier.matchup": "Move matches to chest",
+
+    "key.chestifier.sortchest" : "Sort chest",
+    "key.chestifier.sortplayer": "Sort inventory",
+    "key.chestifier.matchdown": "Move matches to player",
+    "key.chestifier.matchup": "Move matches to chest",
+    "key.chestifier.searchbox": "Show/hide the search box",
+
+    "chestifier.config.largechests": "Allow extra large chests",
+    "chestifier.config.halfsize": "Half button size",
+    "chestifier.config.transparent": "Transparent buttons",
+    "chestifier.config.highlight": "Highlight color (ARGB)",
+    "chestifier.config.enablesearch": "Enable search box",
+    "chestifier.config.enablecolumnbuttons": "Enable column arrows",
+    "chestifier.config.enablerowbuttons": "Enable row arrows",
+
+    "chestifier.config.tt.largechests": "Allow chests to have more than 54 entries",
+    "chestifier.config.tt.halfsize": "Half button size unless mouse hovers over them",
+    "chestifier.config.tt.transparent": "Make buttons transparent unless mouse hovers over them",
+    "chestifier.config.tt.highlight":     "Hex colors, 2 bytes each: transparency, red, green, blue",
+    "chestifier.config.tt.enablesearch":  "Enable the search box to find items by name",
+    "chestifier.config.tt.enablecolumnbuttons": "Enable the arrows above and below chest/inventory",
+    "chestifier.config.tt.enablerowbuttons": "Enable the arrows left of the chest/inventory"
+}

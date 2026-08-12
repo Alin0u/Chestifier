@@ -1,16 +1,32 @@
-# Compiled class file
+# Gradle
+.gradle/
+build/
+out/
+
+# Fabric Loom dev environment (test client/server run from ./gradlew runClient etc.)
+run/
+
+# Eclipse
+bin/
+*.launch
+.project
+.classpath
+.settings/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Package files
 *.class
-
-# Log file
-*.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
 *.jar
 *.war
 *.nar
@@ -19,6 +35,9 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Logs
+*.log
 hs_err_pid*
 replay_pid*
+.mtj.tmp/
+*.ctxt
