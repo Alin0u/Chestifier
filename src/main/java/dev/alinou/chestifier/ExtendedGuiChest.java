@@ -5,7 +5,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.entity.player.PlayerInventory;
@@ -137,9 +136,9 @@ public class ExtendedGuiChest extends HandledScreen {
                 targetItemName = "§§§";
             }
 
-            if (isChest || toSlot >= 9 && (hasShiftDown() || !FrozenSlotDatabase.isSlotFrozen(toSlot))) {
+            if (isChest || toSlot >= 9 && FrozenSlotDatabase.isSlotActionable(toSlot)) {
                 for (int fromSlot = toSlot + 1; fromSlot < size; fromSlot++) {
-                    if (!isChest && !hasShiftDown() && FrozenSlotDatabase.isSlotFrozen(fromSlot))
+                    if (!isChest && !FrozenSlotDatabase.isSlotActionable(fromSlot))
                         continue;
                     ItemStack slotStack = inv.getStack(fromSlot);
                     if (slotStack.getItem() == Items.AIR)
@@ -156,10 +155,8 @@ public class ExtendedGuiChest extends HandledScreen {
             }
 
             for (int fromSlot = toSlot + 1; fromSlot < size; fromSlot++) {
-                if (!isChest && !hasShiftDown()) {
-                    if (FrozenSlotDatabase.isSlotFrozen(fromSlot)) {
-                        continue;
-                    }
+                if (!isChest && !FrozenSlotDatabase.isSlotActionable(fromSlot)) {
+                    continue;
                 }
                 toStack = inv.getStack(toSlot);
                 ItemStack fromStack = inv.getStack(fromSlot);
@@ -202,38 +199,37 @@ public class ExtendedGuiChest extends HandledScreen {
         if (originalEnch.isEmpty()) {
             return false;
         }
+        return enchantedReplacementShouldGoBefore(replacementEnch, originalEnch);
+    }
+
+    /** Both stacks are enchanted: fewer enchantments sort first, then compare by sorted id/level. */
+    private static boolean enchantedReplacementShouldGoBefore(ItemEnchantmentsComponent replacementEnch, ItemEnchantmentsComponent originalEnch) {
         int replSize = replacementEnch.getSize();
         int origSize = originalEnch.getSize();
         if (replSize < origSize) {
             return true;
-        } else if (replSize == origSize) {
-            // Compare enchantment IDs by sorted order (RegistryEntry has getId)
-            var replEntries = replacementEnch.getEnchantments().stream()
-                    .map(e -> e.getIdAsString()).sorted().toList();
-            var origEntries = originalEnch.getEnchantments().stream()
-                    .map(e -> e.getIdAsString()).sorted().toList();
-            for (int i = 0; i < replSize; i++) {
-                String origId = origEntries.get(i);
-                String replId = replEntries.get(i);
-                int cmp = origId.compareTo(replId);
-                if (cmp < 0) return false;
-                if (cmp > 0) return true;
-                int origLevel = originalEnch.getLevel(originalEnch.getEnchantments().stream()
-                        .filter(e -> e.getIdAsString().equals(origId)).findFirst().orElseThrow());
-                int replLevel = replacementEnch.getLevel(replacementEnch.getEnchantments().stream()
-                        .filter(e -> e.getIdAsString().equals(replId)).findFirst().orElseThrow());
-                if (origLevel != replLevel) return replLevel < origLevel;
-            }
-            return false;
-        } else {
+        }
+        if (replSize > origSize) {
             return false;
         }
-    }
-
-    private static boolean hasShiftDown() {
-        net.minecraft.client.util.Window window = MinecraftClient.getInstance().getWindow();
-        return InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_LEFT_SHIFT)
-            || InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_RIGHT_SHIFT);
+        // Compare enchantment IDs by sorted order (RegistryEntry has getId)
+        var replEntries = replacementEnch.getEnchantments().stream()
+                .map(e -> e.getIdAsString()).sorted().toList();
+        var origEntries = originalEnch.getEnchantments().stream()
+                .map(e -> e.getIdAsString()).sorted().toList();
+        for (int i = 0; i < replSize; i++) {
+            String origId = origEntries.get(i);
+            String replId = replEntries.get(i);
+            int cmp = origId.compareTo(replId);
+            if (cmp < 0) return false;
+            if (cmp > 0) return true;
+            int origLevel = originalEnch.getLevel(originalEnch.getEnchantments().stream()
+                    .filter(e -> e.getIdAsString().equals(origId)).findFirst().orElseThrow());
+            int replLevel = replacementEnch.getLevel(replacementEnch.getEnchantments().stream()
+                    .filter(e -> e.getIdAsString().equals(replId)).findFirst().orElseThrow());
+            if (origLevel != replLevel) return replLevel < origLevel;
+        }
+        return false;
     }
 
     public static void moveMatchingItems(HandledScreen<?> screen, boolean isChestToPlayer) {
@@ -254,7 +250,7 @@ public class ExtendedGuiChest extends HandledScreen {
             if (toSize   > 9 * 6) toSize   = 9 * 6;
         }
         for (int i = 0; i < fromSize; i++) {
-            if (!isChestToPlayer && !hasShiftDown() && FrozenSlotDatabase.isSlotFrozen(i))
+            if (!isChestToPlayer && !FrozenSlotDatabase.isSlotActionable(i))
                 continue;
             ItemStack fromStack = from.getStack(i);
             int slot;

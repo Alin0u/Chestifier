@@ -4,6 +4,7 @@ import dev.alinou.chestifier.ConfigurationHandler;
 import dev.alinou.chestifier.Chestifier;
 import dev.alinou.chestifier.ExtendedGuiChest;
 import dev.alinou.chestifier.FrozenSlotDatabase;
+import dev.alinou.chestifier.KeyModifiers;
 import dev.alinou.chestifier.interfaces.SlotClicker;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
@@ -15,7 +16,6 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.input.CharInput;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.resource.language.I18n;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.screen.GenericContainerScreenHandler;
@@ -53,18 +53,6 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     @Shadow protected int x, y, backgroundWidth, backgroundHeight;
 
     protected AbstractContainerScreenMixin() { super(null); }
-
-    private static boolean hasShiftDown() {
-        net.minecraft.client.util.Window window = MinecraftClient.getInstance().getWindow();
-        return InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_LEFT_SHIFT)
-            || InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_RIGHT_SHIFT);
-    }
-
-    private static boolean hasAltDown() {
-        net.minecraft.client.util.Window window = MinecraftClient.getInstance().getWindow();
-        return InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_LEFT_ALT)
-            || InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_RIGHT_ALT);
-    }
 
     @Override
     public void Chestifier$onMouseClick(Slot slot, int invSlot, int button, SlotActionType slotActionType) {
@@ -107,7 +95,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     // reliable hook for this: it isn't called for the hotbar row on all screens.
     @Inject(method = "render", at = @At("HEAD"))
     public void Chestifier$DrawFrozenSlotMarkers(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        if (!isSupportedScreenHandler(handler) || hasShiftDown()) {
+        if (!isSupportedScreenHandler(handler) || KeyModifiers.hasShiftDown()) {
             return;
         }
         for (int i = 0; i < PLAYERSLOTS; i++) {
@@ -121,7 +109,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     // drawSlot in 1.21.11 takes (DrawContext, Slot, int mouseX, int mouseY)
     @Inject(method = "drawSlot", at = @At("RETURN"))
     public void Chestifier$DrawSlotIndex(DrawContext context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
-        if (hasAltDown()) {
+        if (KeyModifiers.hasAltDown()) {
             context.drawText(this.textRenderer, Integer.toString(slot.id), slot.x, slot.y, 0x808090, false);
         }
     }
@@ -313,7 +301,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         }
 
         for (int slot = firstSlot; slot < firstSlot + cols; slot++)
-            if (hasShiftDown() || !FrozenSlotDatabase.isSlotFrozen(Chestifier$playerInventoryIndexFromSlotIndex(slot))) {
+            if (FrozenSlotDatabase.isSlotActionable(Chestifier$playerInventoryIndexFromSlotIndex(slot))) {
                 slotClick(slot, 0, SlotActionType.QUICK_MOVE);
             }
     }
@@ -333,7 +321,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         }
         for (int i = 0; i < count; i++) {
             int slot = first + i * cols;
-            if (hasShiftDown() || !FrozenSlotDatabase.isSlotFrozen(Chestifier$playerInventoryIndexFromSlotIndex(slot)))
+            if (FrozenSlotDatabase.isSlotActionable(Chestifier$playerInventoryIndexFromSlotIndex(slot)))
                 slotClick(slot, 0, SlotActionType.QUICK_MOVE);
         }
     }

@@ -48,6 +48,11 @@ public class FrozenSlotDatabase {
         return frozenSlots[slot];
     }
 
+    /** A frozen player-inventory slot is skipped by sort/match actions, unless shift overrides it. */
+    public static boolean isSlotActionable(int slot) {
+        return KeyModifiers.hasShiftDown() || !isSlotFrozen(slot);
+    }
+
     public static void setSlotFrozen(int slot, boolean frozen) {
         if (slot < 0 || slot >= frozenSlots.length) return;
         frozenSlots[slot] = frozen;

@@ -61,7 +61,7 @@ public class ConfigurationHandler {
     public static void setHighlightColor(String v)   { config.highlightColor = v; save(); }
 
     public static void toggleSearchBox() {
-        config.enableSearch = !config.enableSearch;
+        setEnableSearch(!config.enableSearch);
     }
 
     private static class Config {
