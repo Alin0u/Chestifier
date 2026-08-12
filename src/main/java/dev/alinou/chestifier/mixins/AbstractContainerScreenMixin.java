@@ -262,7 +262,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
                 int startx = x + backgroundWidth / 2 - (18 / 2) * PLAYERINVCOLS;
                 isChest = false;
                 column = ((int) mouseX - startx) / 18;
-                if (column < 0 || column > PLAYERINVCOLS) {
+                if (column < 0 || column >= PLAYERINVCOLS) {
                     return false;
                 }
             } else {

@@ -29,7 +29,9 @@ public class FrozenSlotDatabase {
                 String val = props.getProperty("slot" + i);
                 if (val != null) frozenSlots[i] = Boolean.parseBoolean(val);
             }
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            Chestifier.LOGGER.warn("Failed to load frozen slots: {}", e.getMessage());
+        }
     }
 
     public static void save() {
@@ -40,7 +42,9 @@ public class FrozenSlotDatabase {
         }
         try (FileWriter writer = new FileWriter(storageFile)) {
             props.store(writer, "Chestifier frozen slots");
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            Chestifier.LOGGER.warn("Failed to save frozen slots: {}", e.getMessage());
+        }
     }
 
     public static boolean isSlotFrozen(int slot) {

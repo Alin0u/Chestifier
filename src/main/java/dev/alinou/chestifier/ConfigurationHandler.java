@@ -36,7 +36,9 @@ public class ConfigurationHandler {
         if (configFile == null) return;
         try (FileWriter writer = new FileWriter(configFile)) {
             GSON.toJson(config, writer);
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            Chestifier.LOGGER.warn("Failed to save config: {}", e.getMessage());
+        }
     }
 
     public static boolean allowExtraLargeChests()   { return config.extraLargeChests; }
