@@ -48,8 +48,10 @@ public class Chestifier implements ClientModInitializer {
             ChestGuiInfo helper = (ChestGuiInfo) Class.forName(helperClassName).getDeclaredConstructor().newInstance();
             registerMod(screenHandlerClassName, helper);
             LOGGER.info("Chestifier enabling support for {}", modName);
-        } catch (Exception ex) {
+        } catch (ReflectiveOperationException ex) {
             LOGGER.info("Chestifier did not find mod {}, not enabling support", modName);
+        } catch (Exception ex) {
+            LOGGER.warn("Chestifier failed to enable support for {}", modName, ex);
         }
     }
 

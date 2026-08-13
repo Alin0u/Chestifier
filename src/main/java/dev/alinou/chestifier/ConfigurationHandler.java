@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class ConfigurationHandler {
 
@@ -26,9 +28,19 @@ public class ConfigurationHandler {
                     if (!isValidHexColor(config.highlightColor)) config.highlightColor = "4000ff00";
                 }
             } catch (Exception e) {
-                Chestifier.LOGGER.warn("Failed to load config, using defaults: {}", e.getMessage());
+                Chestifier.LOGGER.warn("Failed to load config, backing up and using defaults: {}", e.getMessage());
+                backupCorruptConfig();
                 config = new Config();
             }
+        }
+    }
+
+    private static void backupCorruptConfig() {
+        try {
+            Files.copy(configFile.toPath(), configFile.toPath().resolveSibling("chestifier.json.bak"),
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            Chestifier.LOGGER.warn("Failed to back up corrupt config: {}", e.getMessage());
         }
     }
 

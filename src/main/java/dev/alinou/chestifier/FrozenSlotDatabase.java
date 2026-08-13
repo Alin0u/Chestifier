@@ -8,7 +8,7 @@ import java.util.Properties;
 
 public class FrozenSlotDatabase {
 
-    private static final boolean[] frozenSlots = new boolean[41];
+    private static final boolean[] frozenSlots = new boolean[InventoryLayout.PLAYER_SLOTS];
     private static File storageFile;
 
     public static void init(File configDir) {
