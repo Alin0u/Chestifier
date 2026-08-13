@@ -4,6 +4,7 @@ import dev.alinou.chestifier.ConfigurationHandler;
 import dev.alinou.chestifier.Chestifier;
 import dev.alinou.chestifier.ExtendedGuiChest;
 import dev.alinou.chestifier.FrozenSlotDatabase;
+import dev.alinou.chestifier.InventoryLayout;
 import dev.alinou.chestifier.KeyModifiers;
 import dev.alinou.chestifier.interfaces.SlotClicker;
 import net.minecraft.client.MinecraftClient;
@@ -35,11 +36,11 @@ import dev.alinou.chestifier.storagemodapi.ChestGuiInfo;
 @Mixin(HandledScreen.class)
 public abstract class AbstractContainerScreenMixin extends Screen implements SlotClicker {
 
-    private static final int PLAYERSLOTS = 36;
-    private static int PLAYERINVCOLS = 9;
-    private static int PLAYERINVROWS = 4;
+    private static final int PLAYERSLOTS = InventoryLayout.PLAYER_SLOTS;
+    private static final int PLAYERINVCOLS = InventoryLayout.PLAYER_INV_COLS;
+    private static final int PLAYERINVROWS = InventoryLayout.PLAYER_INV_ROWS;
 
-    private static TextFieldWidget searchWidget;
+    private TextFieldWidget searchWidget;
 
     @Shadow protected abstract void onMouseClick(Slot slot, int invSlot, int button, SlotActionType slotActionType);
     @Shadow protected abstract void drawMouseoverTooltip(DrawContext context, int x, int y);
@@ -202,6 +203,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
             } else if (!isSupportedScreenHandler(handler)) {
                 return;
             } else if (mouseY > y + 17 && mouseY < y + 17 + 18) {
+                if (handler.slots.isEmpty()) return;
                 ExtendedGuiChest.sortInventory(this, true, handler.getSlot(0).inventory);
                 cir.setReturnValue(true);
                 cir.cancel();
@@ -353,6 +355,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
             cir.setReturnValue(true);
             cir.cancel();
         } else if (Chestifier.keySortChest.matchesKey(keyCode, scanCode)) {
+            if (handler.slots.isEmpty()) return;
             ExtendedGuiChest.sortInventory(this, true, handler.getSlot(0).inventory);
             cir.setReturnValue(true);
             cir.cancel();
@@ -398,32 +401,35 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     }
 
     public int getSlotRowCount() {
-        int size = handler.slots.size() - PLAYERSLOTS;
         if (ConfigurationHandler.allowExtraLargeChests()) {
             ChestGuiInfo helper = Chestifier.getHelperForHandler(handler);
             if (helper != null) {
-                int cols = helper.getRows(handler);
-                if (cols != -1) {
-                    return cols;
+                int rows = helper.getRows(handler);
+                if (rows != -1) {
+                    return rows;
                 }
             }
-            return size / getSlotColumnCount();
+            return chestSlotCount() / getSlotColumnCount();
         }
-        return Math.min(6, size / PLAYERINVCOLS);
+        return Math.min(6, chestSlotCount() / PLAYERINVCOLS);
     }
 
     public int getSlotColumnCount() {
-        int size = handler.slots.size() - PLAYERSLOTS;
+        int size = chestSlotCount();
         if (ConfigurationHandler.allowExtraLargeChests()) {
             ChestGuiInfo helper = Chestifier.getHelperForHandler(handler);
             if (helper != null) {
-                int rows = helper.getColumns(handler);
-                if (rows != -1) {
-                    return rows;
+                int cols = helper.getColumns(handler);
+                if (cols != -1) {
+                    return cols;
                 }
             }
             return (size <= 81 ? PLAYERINVCOLS : size / PLAYERINVCOLS);
         }
         return PLAYERINVCOLS;
+    }
+
+    private int chestSlotCount() {
+        return handler.slots.size() - PLAYERSLOTS;
     }
 }

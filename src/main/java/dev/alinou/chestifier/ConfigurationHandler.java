@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class ConfigurationHandler {
 
@@ -22,13 +24,23 @@ public class ConfigurationHandler {
                 Config loaded = GSON.fromJson(reader, Config.class);
                 if (loaded != null) {
                     config = loaded;
-                    // fill in any missing fields with defaults
-                    if (config.highlightColor == null) config.highlightColor = "4000ff00";
+                    // fill in any missing/invalid fields with defaults
+                    if (!isValidHexColor(config.highlightColor)) config.highlightColor = "4000ff00";
                 }
             } catch (Exception e) {
-                Chestifier.LOGGER.warn("Failed to load config, using defaults: {}", e.getMessage());
+                Chestifier.LOGGER.warn("Failed to load config, backing up and using defaults: {}", e.getMessage());
+                backupCorruptConfig();
                 config = new Config();
             }
+        }
+    }
+
+    private static void backupCorruptConfig() {
+        try {
+            Files.copy(configFile.toPath(), configFile.toPath().resolveSibling("chestifier.json.bak"),
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            Chestifier.LOGGER.warn("Failed to back up corrupt config: {}", e.getMessage());
         }
     }
 
@@ -60,7 +72,15 @@ public class ConfigurationHandler {
     public static void setEnableColumnButtons(boolean v){ config.enableColumnButtons = v; save(); }
 
     public static String getHighlightColor()         { return config.highlightColor; }
-    public static void setHighlightColor(String v)   { config.highlightColor = v; save(); }
+    public static void setHighlightColor(String v)   {
+        if (!isValidHexColor(v)) return;
+        config.highlightColor = v;
+        save();
+    }
+
+    private static boolean isValidHexColor(String v) {
+        return v != null && v.matches("[0-9a-fA-F]{1,8}");
+    }
 
     public static void toggleSearchBox() {
         setEnableSearch(!config.enableSearch);

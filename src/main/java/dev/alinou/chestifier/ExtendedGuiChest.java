@@ -216,30 +216,33 @@ public class ExtendedGuiChest extends HandledScreen {
         if (replSize > origSize) {
             return false;
         }
-        // Compare enchantment IDs by sorted order (RegistryEntry has getId)
+        // Compare enchantment IDs by sorted order, carrying each entry's level along
+        // instead of re-deriving it via a second lookup that could throw if the two
+        // streams ever go out of sync.
         var replEntries = replacementEnch.getEnchantments().stream()
-                .map(e -> e.getIdAsString()).sorted().toList();
+                .map(e -> new EnchEntry(e.getIdAsString(), replacementEnch.getLevel(e.value())))
+                .sorted((a, b) -> a.id().compareTo(b.id())).toList();
         var origEntries = originalEnch.getEnchantments().stream()
-                .map(e -> e.getIdAsString()).sorted().toList();
+                .map(e -> new EnchEntry(e.getIdAsString(), originalEnch.getLevel(e.value())))
+                .sorted((a, b) -> a.id().compareTo(b.id())).toList();
         for (int i = 0; i < replSize; i++) {
-            String origId = origEntries.get(i);
-            String replId = replEntries.get(i);
-            int cmp = origId.compareTo(replId);
+            EnchEntry origEntry = origEntries.get(i);
+            EnchEntry replEntry = replEntries.get(i);
+            int cmp = origEntry.id().compareTo(replEntry.id());
             if (cmp < 0) return false;
             if (cmp > 0) return true;
-            int origLevel = originalEnch.getLevel(originalEnch.getEnchantments().stream()
-                    .filter(e -> e.getIdAsString().equals(origId)).findFirst().orElseThrow().value());
-            int replLevel = replacementEnch.getLevel(replacementEnch.getEnchantments().stream()
-                    .filter(e -> e.getIdAsString().equals(replId)).findFirst().orElseThrow().value());
-            if (origLevel != replLevel) return replLevel < origLevel;
+            if (origEntry.level() != replEntry.level()) return replEntry.level() < origEntry.level();
         }
         return false;
     }
+
+    private record EnchEntry(String id, int level) {}
 
     public static void moveMatchingItems(HandledScreen<?> screen, boolean isChestToPlayer) {
         Inventory from, to;
         int fromSize, toSize;
         MinecraftClient minecraft = MinecraftClient.getInstance();
+        if (screen.getScreenHandler().slots.isEmpty()) return;
         Inventory containerInventory = screen.getScreenHandler().getSlot(0).inventory;
 
         if (isChestToPlayer) {
