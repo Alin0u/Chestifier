@@ -208,6 +208,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
             } else if (!isSupportedScreenHandler(handler)) {
                 return;
             } else if (mouseY > y + 17 && mouseY < y + 17 + 18) {
+                if (handler.slots.isEmpty()) return;
                 ExtendedGuiChest.sortInventory(this, true, handler.getSlot(0).inventory);
                 cir.setReturnValue(true);
                 cir.cancel();
@@ -361,6 +362,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
             cir.setReturnValue(true);
             cir.cancel();
         } else if (Chestifier.keySortChest.matchesKey(keyInput)) {
+            if (handler.slots.isEmpty()) return;
             ExtendedGuiChest.sortInventory(this, true, handler.getSlot(0).inventory);
             cir.setReturnValue(true);
             cir.cancel();
