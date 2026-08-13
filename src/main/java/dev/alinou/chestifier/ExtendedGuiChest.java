@@ -1,10 +1,11 @@
 package dev.alinou.chestifier;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import dev.alinou.chestifier.interfaces.SlotClicker;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.entity.player.PlayerInventory;
@@ -16,7 +17,6 @@ import net.minecraft.screen.ShulkerBoxScreenHandler;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.joml.Matrix3x2fStack;
 
 /*
  * Warning - this code should extend ContainerScreen54 AND ShulkerBoxScreen,
@@ -67,10 +67,10 @@ public class ExtendedGuiChest extends HandledScreen {
     @Override
     protected void drawBackground(DrawContext context, float partialTicks, int mouseX, int mouseY) {
         if (separateBlits) {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, background, x, y, 0, 0, this.backgroundWidth, this.inventoryRows * 18 + 17, 256, 256);
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, background, x, y + this.inventoryRows * 18 + 17, 0, 126, this.backgroundWidth, 96, 256, 256);
+            context.drawTexture(background, x, y, 0, 0, this.backgroundWidth, this.inventoryRows * 18 + 17, 256, 256);
+            context.drawTexture(background, x, y + this.inventoryRows * 18 + 17, 0, 126, this.backgroundWidth, 96, 256, 256);
         } else {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, background, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256);
+            context.drawTexture(background, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256);
         }
     }
 
@@ -97,23 +97,27 @@ public class ExtendedGuiChest extends HandledScreen {
     public static void drawTexturedModalRectWithMouseHighlight(HandledScreen<?> screen, DrawContext context, int screenx, int screeny, int textx, int texty, int sizex, int sizey, int mousex, int mousey) {
         boolean hovered = mousex >= screenx && mousex < screenx + sizex && mousey >= screeny && mousey < screeny + sizey;
         if (hovered) {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            context.drawTexture(ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
         } else if (ConfigurationHandler.halfSizeButtons()) {
-            Matrix3x2fStack matrices = context.getMatrices();
-            matrices.pushMatrix();
-            matrices.translate(screenx + sizex / 4.0f, screeny + sizey / 4.0f);
-            matrices.scale(0.5f, 0.5f);
-            matrices.translate(-(screenx + sizex / 4.0f), -(screeny + sizey / 4.0f));
+            MatrixStack matrices = context.getMatrices();
+            matrices.push();
+            matrices.translate(screenx + sizex / 4.0f, screeny + sizey / 4.0f, 0);
+            matrices.scale(0.5f, 0.5f, 1.0f);
+            matrices.translate(-(screenx + sizex / 4.0f), -(screeny + sizey / 4.0f), 0);
             if (ConfigurationHandler.toneDownButtons()) {
-                context.drawTexture(RenderPipelines.GUI_TEXTURED_PREMULTIPLIED_ALPHA, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+                RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.3f);
+                context.drawTexture(ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+                RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
             } else {
-                context.drawTexture(RenderPipelines.GUI_TEXTURED, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+                context.drawTexture(ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
             }
-            matrices.popMatrix();
+            matrices.pop();
         } else if (ConfigurationHandler.toneDownButtons()) {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED_PREMULTIPLIED_ALPHA, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.3f);
+            context.drawTexture(ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         } else {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            context.drawTexture(ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
         }
     }
 
@@ -224,9 +228,9 @@ public class ExtendedGuiChest extends HandledScreen {
             if (cmp < 0) return false;
             if (cmp > 0) return true;
             int origLevel = originalEnch.getLevel(originalEnch.getEnchantments().stream()
-                    .filter(e -> e.getIdAsString().equals(origId)).findFirst().orElseThrow());
+                    .filter(e -> e.getIdAsString().equals(origId)).findFirst().orElseThrow().value());
             int replLevel = replacementEnch.getLevel(replacementEnch.getEnchantments().stream()
-                    .filter(e -> e.getIdAsString().equals(replId)).findFirst().orElseThrow());
+                    .filter(e -> e.getIdAsString().equals(replId)).findFirst().orElseThrow().value());
             if (origLevel != replLevel) return replLevel < origLevel;
         }
         return false;

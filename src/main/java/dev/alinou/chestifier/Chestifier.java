@@ -5,9 +5,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.option.KeyBinding.Category;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import dev.alinou.chestifier.storagemodapi.ChestGuiInfo;
 import org.slf4j.Logger;
@@ -18,6 +16,8 @@ public class Chestifier implements ClientModInitializer {
     static final String MODID = "chestifier";
     static final String MODNAME = "Chestifier";
     public static final Logger LOGGER = LoggerFactory.getLogger(MODNAME);
+
+    private static final String KEY_CATEGORY = "key.categories.chestifier";
 
     public static KeyBinding keySortChest, keyMoveToChest,
                              keySortPlInv, keyMoveToPlInv,
@@ -30,12 +30,11 @@ public class Chestifier implements ClientModInitializer {
         ConfigurationHandler.load();
         FrozenSlotDatabase.init(FabricLoader.getInstance().getConfigDir().toFile());
 
-        Category category = Category.create(Identifier.of(MODID, "key.categories.chestifier"));
-        keySortChest  = registerKey("sortchest",  GLFW.GLFW_KEY_KP_7, category);
-        keyMoveToChest= registerKey("matchup",    GLFW.GLFW_KEY_KP_8, category);
-        keySortPlInv  = registerKey("sortplayer", GLFW.GLFW_KEY_KP_1, category);
-        keyMoveToPlInv= registerKey("matchdown",  GLFW.GLFW_KEY_KP_2, category);
-        keySearchBox  = registerKey("searchbox",  GLFW.GLFW_KEY_UNKNOWN, category);
+        keySortChest  = registerKey("sortchest",  GLFW.GLFW_KEY_KP_7);
+        keyMoveToChest= registerKey("matchup",    GLFW.GLFW_KEY_KP_8);
+        keySortPlInv  = registerKey("sortplayer", GLFW.GLFW_KEY_KP_1);
+        keyMoveToPlInv= registerKey("matchdown",  GLFW.GLFW_KEY_KP_2);
+        keySearchBox  = registerKey("searchbox",  GLFW.GLFW_KEY_UNKNOWN);
     }
 
     public static void registerMod(String screenHandlerClassName, ChestGuiInfo helper) {
@@ -57,8 +56,8 @@ public class Chestifier implements ClientModInitializer {
         return modHelpers.get(handler.getClass().getCanonicalName());
     }
 
-    private KeyBinding registerKey(String key, int code, Category category) {
-        KeyBinding binding = new KeyBinding("key.chestifier." + key, net.minecraft.client.util.InputUtil.Type.KEYSYM, code, category);
+    private KeyBinding registerKey(String key, int code) {
+        KeyBinding binding = new KeyBinding("key.chestifier." + key, net.minecraft.client.util.InputUtil.Type.KEYSYM, code, KEY_CATEGORY);
         KeyBindingHelper.registerKeyBinding(binding);
         return binding;
     }

@@ -7,14 +7,10 @@ import dev.alinou.chestifier.FrozenSlotDatabase;
 import dev.alinou.chestifier.KeyModifiers;
 import dev.alinou.chestifier.interfaces.SlotClicker;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.input.CharInput;
-import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
@@ -26,7 +22,6 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -101,14 +96,14 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         for (int i = 0; i < PLAYERSLOTS; i++) {
             if (FrozenSlotDatabase.isSlotFrozen(i)) {
                 Slot slot = this.handler.slots.get(Chestifier$slotIndexfromPlayerInventoryIndex(i));
-                context.drawTexture(RenderPipelines.GUI_TEXTURED_PREMULTIPLIED_ALPHA, ExtendedGuiChest.ICONS, x + slot.x, y + slot.y, 7 * 18 + 1, 3 * 18 + 1, 16, 16, 256, 256);
+                context.drawTexture(ExtendedGuiChest.ICONS, x + slot.x, y + slot.y, 7 * 18 + 1, 3 * 18 + 1, 16, 16, 256, 256);
             }
         }
     }
 
-    // drawSlot in 1.21.11 takes (DrawContext, Slot, int mouseX, int mouseY)
+    // drawSlot in 1.20.5 takes (DrawContext, Slot) only, no mouseX/mouseY
     @Inject(method = "drawSlot", at = @At("RETURN"))
-    public void Chestifier$DrawSlotIndex(DrawContext context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
+    public void Chestifier$DrawSlotIndex(DrawContext context, Slot slot, CallbackInfo ci) {
         if (KeyModifiers.hasAltDown()) {
             context.drawText(this.textRenderer, Integer.toString(slot.id), slot.x, slot.y, 0x808090, false);
         }
@@ -175,15 +170,11 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-    public void Chestifier$checkMyButtons(Click click, boolean bl, CallbackInfoReturnable<Boolean> cir) {
-        double mouseX = click.x();
-        double mouseY = click.y();
-        int mouseButton = click.button();
-
+    public void Chestifier$checkMyButtons(double mouseX, double mouseY, int mouseButton, CallbackInfoReturnable<Boolean> cir) {
         if (isSupportedScreenHandler(handler)
         && ConfigurationHandler.enableSearch()
         && searchWidget != null
-        && searchWidget.mouseClicked(click, bl)) {
+        && searchWidget.mouseClicked(mouseX, mouseY, mouseButton)) {
             searchWidget.setFocused(true);
             cir.setReturnValue(true);
             cir.cancel();
@@ -331,10 +322,8 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    public void Chestifier$keyPressed(KeyInput keyInput, CallbackInfoReturnable<Boolean> cir) {
+    public void Chestifier$keyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
         HandledScreen<?> hScreen = (HandledScreen<?>) (Screen) this;
-        int keyCode = keyInput.key();
-        int scanCode = keyInput.scancode();
 
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             return;
@@ -344,31 +333,31 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         && ConfigurationHandler.enableSearch()
         && searchWidget != null
         && searchWidget.isActive()) {
-            boolean value = searchWidget.keyPressed(keyInput);
+            boolean value = searchWidget.keyPressed(keyCode, scanCode, modifiers);
             cir.setReturnValue(value);
             cir.cancel();
             return;
         }
 
-        if (Chestifier.keySortPlInv.matchesKey(keyInput)) {
+        if (Chestifier.keySortPlInv.matchesKey(keyCode, scanCode)) {
             ExtendedGuiChest.sortInventory(this, false, MinecraftClient.getInstance().player.getInventory());
             cir.setReturnValue(true);
             cir.cancel();
         } else if (!isSupportedScreenHandler(handler)) {
             return;
-        } else if (Chestifier.keyMoveToChest.matchesKey(keyInput)) {
+        } else if (Chestifier.keyMoveToChest.matchesKey(keyCode, scanCode)) {
             ExtendedGuiChest.moveMatchingItems(hScreen, false);
             cir.setReturnValue(true);
             cir.cancel();
-        } else if (Chestifier.keySortChest.matchesKey(keyInput)) {
+        } else if (Chestifier.keySortChest.matchesKey(keyCode, scanCode)) {
             ExtendedGuiChest.sortInventory(this, true, handler.getSlot(0).inventory);
             cir.setReturnValue(true);
             cir.cancel();
-        } else if (Chestifier.keyMoveToPlInv.matchesKey(keyInput)) {
+        } else if (Chestifier.keyMoveToPlInv.matchesKey(keyCode, scanCode)) {
             ExtendedGuiChest.moveMatchingItems(hScreen, true);
             cir.setReturnValue(true);
             cir.cancel();
-        } else if (Chestifier.keySearchBox.matchesKey(keyInput)) {
+        } else if (Chestifier.keySearchBox.matchesKey(keyCode, scanCode)) {
             ConfigurationHandler.toggleSearchBox();
             cir.setReturnValue(true);
             cir.cancel();
@@ -376,14 +365,14 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     }
 
     @Override
-    public boolean charTyped(CharInput charInput) {
+    public boolean charTyped(char chr, int modifiers) {
         if (isSupportedScreenHandler(handler)
         && ConfigurationHandler.enableSearch()
         && searchWidget != null
         && searchWidget.isActive()) {
-            return searchWidget.charTyped(charInput);
+            return searchWidget.charTyped(chr, modifiers);
         }
-        return super.charTyped(charInput);
+        return super.charTyped(chr, modifiers);
     }
 
     private boolean loggedScreenHandlerClass = false;
