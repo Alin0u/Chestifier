@@ -27,26 +27,27 @@ one branch gets cherry-picked across, it isn't merged between them.
 
 ## Supported versions
 
-| Branch            | Minecraft   | Status    |
-|--------------------|-------------|-----------|
-| `fabric_1.21.11`   | 1.21.11     | confirmed working |
+| Branch            | Minecraft     | Status    |
+|--------------------|---------------|-----------|
+| `fabric_1.21.11`   | 1.21.11       | confirmed working |
+| `fabric_1.20.5`    | 1.20.5, 1.20.6 | confirmed working |
 
-Other 1.21.x patches are untested. 
+Other 1.21.x and 1.20.x patches are untested.
 
 ## Releases
 
-File naming: `chestifier-<minecraft_version>-fabric_<fabric_version>-<mod_version>.jar`, e.g.
+File naming: `chestifier-<minecraft_version>_v<mod_version>.jar`, e.g.
 
 ```
-chestifier-1.21.9-fabric_0.19.3-1.1.0.jar
-chestifier-1.20.2-fabric_0.18.4-1.0.2.jar
+chestifier-1.21.11_v1.1.3.jar
+chestifier-1.20.5_v0.1.1.jar
 ```
 
-Tag naming: `<minecraft_version>-fabric_<fabric_version>-<mod_version>`, e.g.
+Tag naming: `<minecraft_version>_v<mod_version>`, e.g.
 
 ```
-1.21.9-fabric_0.19.3-1.1.0
-1.20.2-fabric_0.18.4-1.0.2
+1.21.11_v1.1.3
+1.20.5_v0.1.1
 ```
 
 Each release gets a GitHub Release from that tag, built from the matching
