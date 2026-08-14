@@ -36,6 +36,7 @@ actions via anti-cheat plugins. No server-side plugin required.
 - [Fabric Loader](https://fabricmc.net/)
 - [Fabric API](https://modrinth.com/mod/fabric-api)
 - [Mod Menu](https://modrinth.com/mod/modmenu) (optional, for the config screen)
+- [Cloth Config API](https://modrinth.com/mod/cloth-config) (optional, for configuration)
 
 Chestifier is developed on a separate branch per supported Minecraft
 version. See [docs/VERSIONING.md](docs/VERSIONING.md) for the branch
