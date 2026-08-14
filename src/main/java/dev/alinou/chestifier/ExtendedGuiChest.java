@@ -5,6 +5,7 @@ import dev.alinou.chestifier.interfaces.SlotClicker;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
@@ -67,10 +68,10 @@ public class ExtendedGuiChest extends HandledScreen {
     @Override
     protected void drawBackground(DrawContext context, float partialTicks, int mouseX, int mouseY) {
         if (separateBlits) {
-            context.drawTexture(background, x, y, 0, 0, this.backgroundWidth, this.inventoryRows * 18 + 17, 256, 256);
-            context.drawTexture(background, x, y + this.inventoryRows * 18 + 17, 0, 126, this.backgroundWidth, 96, 256, 256);
+            context.drawTexture(RenderLayer::getGuiTextured, background, x, y, 0, 0, this.backgroundWidth, this.inventoryRows * 18 + 17, 256, 256);
+            context.drawTexture(RenderLayer::getGuiTextured, background, x, y + this.inventoryRows * 18 + 17, 0, 126, this.backgroundWidth, 96, 256, 256);
         } else {
-            context.drawTexture(background, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256);
+            context.drawTexture(RenderLayer::getGuiTextured, background, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256);
         }
     }
 
@@ -97,7 +98,7 @@ public class ExtendedGuiChest extends HandledScreen {
     public static void drawTexturedModalRectWithMouseHighlight(HandledScreen<?> screen, DrawContext context, int screenx, int screeny, int textx, int texty, int sizex, int sizey, int mousex, int mousey) {
         boolean hovered = mousex >= screenx && mousex < screenx + sizex && mousey >= screeny && mousey < screeny + sizey;
         if (hovered) {
-            context.drawTexture(ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
         } else if (ConfigurationHandler.halfSizeButtons()) {
             MatrixStack matrices = context.getMatrices();
             matrices.push();
@@ -106,18 +107,18 @@ public class ExtendedGuiChest extends HandledScreen {
             matrices.translate(-(screenx + sizex / 4.0f), -(screeny + sizey / 4.0f), 0);
             if (ConfigurationHandler.toneDownButtons()) {
                 RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.3f);
-                context.drawTexture(ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+                context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
                 RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
             } else {
-                context.drawTexture(ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+                context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
             }
             matrices.pop();
         } else if (ConfigurationHandler.toneDownButtons()) {
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.3f);
-            context.drawTexture(ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         } else {
-            context.drawTexture(ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
         }
     }
 
@@ -220,10 +221,10 @@ public class ExtendedGuiChest extends HandledScreen {
         // instead of re-deriving it via a second lookup that could throw if the two
         // streams ever go out of sync.
         var replEntries = replacementEnch.getEnchantments().stream()
-                .map(e -> new EnchEntry(e.getIdAsString(), replacementEnch.getLevel(e.value())))
+                .map(e -> new EnchEntry(e.getIdAsString(), replacementEnch.getLevel(e)))
                 .sorted((a, b) -> a.id().compareTo(b.id())).toList();
         var origEntries = originalEnch.getEnchantments().stream()
-                .map(e -> new EnchEntry(e.getIdAsString(), originalEnch.getLevel(e.value())))
+                .map(e -> new EnchEntry(e.getIdAsString(), originalEnch.getLevel(e)))
                 .sorted((a, b) -> a.id().compareTo(b.id())).toList();
         for (int i = 0; i < replSize; i++) {
             EnchEntry origEntry = origEntries.get(i);
