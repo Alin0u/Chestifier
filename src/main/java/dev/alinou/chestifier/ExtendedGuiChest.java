@@ -188,8 +188,7 @@ public class ExtendedGuiChest extends HandledScreen {
             return false;
         }
 
-        // In 1.21.11, enchantments are stored as ItemEnchantmentsComponent
-        // Enchanted books use DataComponentTypes.STORED_ENCHANTMENTS
+        // Enchanted books use STORED_ENCHANTMENTS instead of ENCHANTMENTS
         ItemEnchantmentsComponent originalEnch = original.getOrDefault(DataComponentTypes.STORED_ENCHANTMENTS,
                 original.getEnchantments());
         ItemEnchantmentsComponent replacementEnch = replacement.getOrDefault(DataComponentTypes.STORED_ENCHANTMENTS,
@@ -217,9 +216,7 @@ public class ExtendedGuiChest extends HandledScreen {
         if (replSize > origSize) {
             return false;
         }
-        // Compare enchantment IDs by sorted order, carrying each entry's level along
-        // instead of re-deriving it via a second lookup that could throw if the two
-        // streams ever go out of sync.
+        // Compare by enchantment id, carrying each entry's level along instead of a second lookup
         var replEntries = replacementEnch.getEnchantments().stream()
                 .map(e -> new EnchEntry(e.getIdAsString(), replacementEnch.getLevel(e)))
                 .sorted((a, b) -> a.id().compareTo(b.id())).toList();

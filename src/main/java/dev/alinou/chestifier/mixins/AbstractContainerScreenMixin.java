@@ -87,14 +87,9 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         }
     }
 
-    // Draws frozen-slot markers before the vanilla slot/item render pass, so the marker
-    // sits behind the item instead of on top of it. drawSlot() isn't a reliable hook for
-    // this: it isn't called for the hotbar row on all screens. On 1.20.5, render() calls
-    // RenderSystem.disableDepthTest() right after the background draw and right before
-    // the slot/item loop, so injecting at that call is the pre-item-render point (this
-    // matches how the original EasierChests did it on this Minecraft version).
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;disableDepthTest()V", remap = false))
-    public void Chestifier$DrawFrozenSlotMarkers(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+    // Draws frozen-slot markers behind the items, before the slot render loop.
+    @Inject(method = "drawSlots", at = @At("HEAD"))
+    public void Chestifier$DrawFrozenSlotMarkers(DrawContext context, CallbackInfo ci) {
         if (!isSupportedScreenHandler(handler) || KeyModifiers.hasShiftDown()) {
             return;
         }
@@ -106,7 +101,6 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         }
     }
 
-    // drawSlot in 1.20.5 takes (DrawContext, Slot) only, no mouseX/mouseY
     @Inject(method = "drawSlot", at = @At("RETURN"))
     public void Chestifier$DrawSlotIndex(DrawContext context, Slot slot, CallbackInfo ci) {
         if (KeyModifiers.hasAltDown()) {
