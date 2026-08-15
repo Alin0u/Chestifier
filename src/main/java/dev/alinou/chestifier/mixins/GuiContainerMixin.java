@@ -34,7 +34,7 @@ public class GuiContainerMixin {
                     client.player.getInventory(), component,
                     container.getRowCount());
             client.player.containerMenu = container;
-            client.setScreen(screen);
+            client.gui.setScreen(screen);
             LOGGER.debug("(my chest)");
             ci.cancel();
         } else if (type == MenuType.SHULKER_BOX) {
@@ -42,7 +42,7 @@ public class GuiContainerMixin {
             ExtendedGuiChest screen = new ExtendedGuiChest(container,
                     client.player.getInventory(), component);
             client.player.containerMenu = container;
-            client.setScreen(screen);
+            client.gui.setScreen(screen);
             LOGGER.debug("(my shulker)");
             ci.cancel();
         } else {
