@@ -107,9 +107,8 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         }
     }
 
-    // drawSlot in 1.21.11 takes (DrawContext, Slot, int mouseX, int mouseY)
     @Inject(method = "drawSlot", at = @At("RETURN"))
-    public void Chestifier$DrawSlotIndex(DrawContext context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
+    public void Chestifier$DrawSlotIndex(DrawContext context, Slot slot, CallbackInfo ci) {
         if (KeyModifiers.hasAltDown()) {
             context.drawText(this.textRenderer, Integer.toString(slot.id), slot.x, slot.y, 0x808090, false);
         }
