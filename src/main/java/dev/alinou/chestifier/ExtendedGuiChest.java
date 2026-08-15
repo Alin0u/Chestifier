@@ -3,9 +3,8 @@ package dev.alinou.chestifier;
 import dev.alinou.chestifier.interfaces.SlotClicker;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.entity.player.PlayerInventory;
@@ -17,6 +16,7 @@ import net.minecraft.screen.ShulkerBoxScreenHandler;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.joml.Matrix3x2fStack;
 
 /*
  * Warning - this code should extend ContainerScreen54 AND ShulkerBoxScreen,
@@ -67,10 +67,10 @@ public class ExtendedGuiChest extends HandledScreen {
     @Override
     protected void drawBackground(DrawContext context, float partialTicks, int mouseX, int mouseY) {
         if (separateBlits) {
-            context.drawTexture(RenderLayer::getGuiTextured, background, x, y, 0, 0, this.backgroundWidth, this.inventoryRows * 18 + 17, 256, 256);
-            context.drawTexture(RenderLayer::getGuiTextured, background, x, y + this.inventoryRows * 18 + 17, 0, 126, this.backgroundWidth, 96, 256, 256);
+            context.drawTexture(RenderPipelines.GUI_TEXTURED, background, x, y, 0, 0, this.backgroundWidth, this.inventoryRows * 18 + 17, 256, 256);
+            context.drawTexture(RenderPipelines.GUI_TEXTURED, background, x, y + this.inventoryRows * 18 + 17, 0, 126, this.backgroundWidth, 96, 256, 256);
         } else {
-            context.drawTexture(RenderLayer::getGuiTextured, background, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256);
+            context.drawTexture(RenderPipelines.GUI_TEXTURED, background, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256);
         }
     }
 
@@ -102,14 +102,14 @@ public class ExtendedGuiChest extends HandledScreen {
         if (hovered) {
             drawIcon(context, screenx, screeny, textx, texty, sizex, sizey, OPAQUE);
         } else if (ConfigurationHandler.halfSizeButtons()) {
-            MatrixStack matrices = context.getMatrices();
-            matrices.push();
-            matrices.translate(screenx + sizex / 4.0f, screeny + sizey / 4.0f, 0);
-            matrices.scale(0.5f, 0.5f, 1.0f);
-            matrices.translate(-(screenx + sizex / 4.0f), -(screeny + sizey / 4.0f), 0);
+            Matrix3x2fStack matrices = context.getMatrices();
+            matrices.pushMatrix();
+            matrices.translate(screenx + sizex / 4.0f, screeny + sizey / 4.0f);
+            matrices.scale(0.5f, 0.5f);
+            matrices.translate(-(screenx + sizex / 4.0f), -(screeny + sizey / 4.0f));
             drawIcon(context, screenx, screeny, textx, texty, sizex, sizey,
                     ConfigurationHandler.toneDownButtons() ? TONED_DOWN : OPAQUE);
-            matrices.pop();
+            matrices.popMatrix();
         } else if (ConfigurationHandler.toneDownButtons()) {
             drawIcon(context, screenx, screeny, textx, texty, sizex, sizey, TONED_DOWN);
         } else {
@@ -118,7 +118,7 @@ public class ExtendedGuiChest extends HandledScreen {
     }
 
     private static void drawIcon(DrawContext context, int screenx, int screeny, int textx, int texty, int sizex, int sizey, int color) {
-        context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, sizex, sizey, 256, 256, color);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, ICONS, screenx, screeny, textx, texty, sizex, sizey, sizex, sizey, 256, 256, color);
     }
 
     private static void myTooltip(DrawContext context, int screenx, int screeny, int sizex, int sizey, int mousex, int mousey, Text tooltip) {

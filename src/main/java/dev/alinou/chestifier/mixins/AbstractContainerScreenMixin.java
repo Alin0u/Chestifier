@@ -8,11 +8,11 @@ import dev.alinou.chestifier.InventoryLayout;
 import dev.alinou.chestifier.KeyModifiers;
 import dev.alinou.chestifier.interfaces.SlotClicker;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
@@ -97,7 +97,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         for (int i = 0; i < PLAYERSLOTS; i++) {
             if (FrozenSlotDatabase.isSlotFrozen(i)) {
                 Slot slot = this.handler.slots.get(Chestifier$slotIndexfromPlayerInventoryIndex(i));
-                context.drawTexture(RenderLayer::getGuiTextured, ExtendedGuiChest.ICONS, slot.x, slot.y, 7 * 18 + 1, 3 * 18 + 1, 16, 16, 256, 256);
+                context.drawTexture(RenderPipelines.GUI_TEXTURED, ExtendedGuiChest.ICONS, slot.x, slot.y, 7 * 18 + 1, 3 * 18 + 1, 16, 16, 256, 256);
             }
         }
     }
