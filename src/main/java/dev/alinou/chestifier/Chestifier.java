@@ -1,13 +1,14 @@
 package dev.alinou.chestifier;
 
 import java.util.HashMap;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.option.KeyBinding.Category;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.KeyMapping.Category;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.lwjgl.glfw.GLFW;
 import dev.alinou.chestifier.storagemodapi.ChestGuiInfo;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ public class Chestifier implements ClientModInitializer {
     static final String MODNAME = "Chestifier";
     public static final Logger LOGGER = LoggerFactory.getLogger(MODNAME);
 
-    public static KeyBinding keySortChest, keyMoveToChest,
+    public static KeyMapping keySortChest, keyMoveToChest,
                              keySortPlInv, keyMoveToPlInv,
                              keySearchBox;
 
@@ -30,7 +31,7 @@ public class Chestifier implements ClientModInitializer {
         ConfigurationHandler.load();
         FrozenSlotDatabase.init(FabricLoader.getInstance().getConfigDir().toFile());
 
-        Category category = Category.create(Identifier.of(MODID, "key.categories.chestifier"));
+        Category category = Category.register(Identifier.fromNamespaceAndPath(MODID, "key.categories.chestifier"));
         keySortChest  = registerKey("sortchest",  GLFW.GLFW_KEY_KP_7, category);
         keyMoveToChest= registerKey("matchup",    GLFW.GLFW_KEY_KP_8, category);
         keySortPlInv  = registerKey("sortplayer", GLFW.GLFW_KEY_KP_1, category);
@@ -55,13 +56,13 @@ public class Chestifier implements ClientModInitializer {
         }
     }
 
-    public static ChestGuiInfo getHelperForHandler(ScreenHandler handler) {
+    public static ChestGuiInfo getHelperForHandler(AbstractContainerMenu handler) {
         return modHelpers.get(handler.getClass().getCanonicalName());
     }
 
-    private KeyBinding registerKey(String key, int code, Category category) {
-        KeyBinding binding = new KeyBinding("key.chestifier." + key, net.minecraft.client.util.InputUtil.Type.KEYSYM, code, category);
-        KeyBindingHelper.registerKeyBinding(binding);
+    private KeyMapping registerKey(String key, int code, Category category) {
+        KeyMapping binding = new KeyMapping("key.chestifier." + key, InputConstants.Type.KEYSYM, code, category);
+        KeyMappingHelper.registerKeyMapping(binding);
         return binding;
     }
 }

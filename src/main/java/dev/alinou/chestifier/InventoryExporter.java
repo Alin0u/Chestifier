@@ -1,7 +1,7 @@
 package dev.alinou.chestifier;
 
-import net.minecraft.inventory.Inventory;
+import net.minecraft.world.Container;
 
 public interface InventoryExporter {
-    Inventory getInventory();
+    Container getInventory();
 }

@@ -5,7 +5,7 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public class MMConfigurationHandler implements ModMenuApi {
 
@@ -14,51 +14,51 @@ public class MMConfigurationHandler implements ModMenuApi {
         return parent -> {
             ConfigBuilder builder = ConfigBuilder.create()
                     .setParentScreen(parent)
-                    .setTitle(Text.literal("Chestifier Settings"))
+                    .setTitle(Component.literal("Chestifier Settings"))
                     .setSavingRunnable(ConfigurationHandler::save);
 
             ConfigEntryBuilder eb = builder.entryBuilder();
-            ConfigCategory cat = builder.getOrCreateCategory(Text.literal("General"));
+            ConfigCategory cat = builder.getOrCreateCategory(Component.literal("General"));
 
-            cat.addEntry(eb.startBooleanToggle(Text.translatable("chestifier.config.largechests"), ConfigurationHandler.allowExtraLargeChests())
+            cat.addEntry(eb.startBooleanToggle(Component.translatable("chestifier.config.largechests"), ConfigurationHandler.allowExtraLargeChests())
                     .setDefaultValue(false)
-                    .setTooltip(Text.translatable("chestifier.config.tt.largechests"))
+                    .setTooltip(Component.translatable("chestifier.config.tt.largechests"))
                     .setSaveConsumer(ConfigurationHandler::setAllowExtraLargeChests)
                     .build());
 
-            cat.addEntry(eb.startBooleanToggle(Text.translatable("chestifier.config.halfsize"), ConfigurationHandler.halfSizeButtons())
+            cat.addEntry(eb.startBooleanToggle(Component.translatable("chestifier.config.halfsize"), ConfigurationHandler.halfSizeButtons())
                     .setDefaultValue(false)
-                    .setTooltip(Text.translatable("chestifier.config.tt.halfsize"))
+                    .setTooltip(Component.translatable("chestifier.config.tt.halfsize"))
                     .setSaveConsumer(ConfigurationHandler::setHalfSizeButtons)
                     .build());
 
-            cat.addEntry(eb.startBooleanToggle(Text.translatable("chestifier.config.transparent"), ConfigurationHandler.toneDownButtons())
+            cat.addEntry(eb.startBooleanToggle(Component.translatable("chestifier.config.transparent"), ConfigurationHandler.toneDownButtons())
                     .setDefaultValue(true)
-                    .setTooltip(Text.translatable("chestifier.config.tt.transparent"))
+                    .setTooltip(Component.translatable("chestifier.config.tt.transparent"))
                     .setSaveConsumer(ConfigurationHandler::setToneDownButtons)
                     .build());
 
-            cat.addEntry(eb.startBooleanToggle(Text.translatable("chestifier.config.enablesearch"), ConfigurationHandler.enableSearch())
+            cat.addEntry(eb.startBooleanToggle(Component.translatable("chestifier.config.enablesearch"), ConfigurationHandler.enableSearch())
                     .setDefaultValue(true)
-                    .setTooltip(Text.translatable("chestifier.config.tt.enablesearch"))
+                    .setTooltip(Component.translatable("chestifier.config.tt.enablesearch"))
                     .setSaveConsumer(ConfigurationHandler::setEnableSearch)
                     .build());
 
-            cat.addEntry(eb.startBooleanToggle(Text.translatable("chestifier.config.enablerowbuttons"), ConfigurationHandler.enableRowButtons())
+            cat.addEntry(eb.startBooleanToggle(Component.translatable("chestifier.config.enablerowbuttons"), ConfigurationHandler.enableRowButtons())
                     .setDefaultValue(true)
-                    .setTooltip(Text.translatable("chestifier.config.tt.enablerowbuttons"))
+                    .setTooltip(Component.translatable("chestifier.config.tt.enablerowbuttons"))
                     .setSaveConsumer(ConfigurationHandler::setEnableRowButtons)
                     .build());
 
-            cat.addEntry(eb.startBooleanToggle(Text.translatable("chestifier.config.enablecolumnbuttons"), ConfigurationHandler.enableColumnButtons())
+            cat.addEntry(eb.startBooleanToggle(Component.translatable("chestifier.config.enablecolumnbuttons"), ConfigurationHandler.enableColumnButtons())
                     .setDefaultValue(true)
-                    .setTooltip(Text.translatable("chestifier.config.tt.enablecolumnbuttons"))
+                    .setTooltip(Component.translatable("chestifier.config.tt.enablecolumnbuttons"))
                     .setSaveConsumer(ConfigurationHandler::setEnableColumnButtons)
                     .build());
 
-            cat.addEntry(eb.startStrField(Text.translatable("chestifier.config.highlight"), ConfigurationHandler.getHighlightColor())
+            cat.addEntry(eb.startStrField(Component.translatable("chestifier.config.highlight"), ConfigurationHandler.getHighlightColor())
                     .setDefaultValue("4000ff00")
-                    .setTooltip(Text.translatable("chestifier.config.tt.highlight"))
+                    .setTooltip(Component.translatable("chestifier.config.tt.highlight"))
                     .setSaveConsumer(ConfigurationHandler::setHighlightColor)
                     .build());
 

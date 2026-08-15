@@ -7,27 +7,26 @@ import dev.alinou.chestifier.FrozenSlotDatabase;
 import dev.alinou.chestifier.InventoryLayout;
 import dev.alinou.chestifier.KeyModifiers;
 import dev.alinou.chestifier.interfaces.SlotClicker;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.input.CharInput;
-import net.minecraft.client.input.KeyInput;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.screen.GenericContainerScreenHandler;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ShulkerBoxScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.ShulkerBoxMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import org.lwjgl.glfw.GLFW;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,34 +37,34 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import dev.alinou.chestifier.storagemodapi.ChestGuiInfo;
 
-@Mixin(HandledScreen.class)
+@Mixin(AbstractContainerScreen.class)
 public abstract class AbstractContainerScreenMixin extends Screen implements SlotClicker {
 
     private static final int PLAYERSLOTS = InventoryLayout.PLAYER_SLOTS;
     private static final int PLAYERINVCOLS = InventoryLayout.PLAYER_INV_COLS;
     private static final int PLAYERINVROWS = InventoryLayout.PLAYER_INV_ROWS;
 
-    private TextFieldWidget searchWidget;
+    private EditBox searchWidget;
 
-    @Shadow protected abstract void onMouseClick(Slot slot, int invSlot, int button, SlotActionType slotActionType);
-    @Shadow protected abstract void drawMouseoverTooltip(DrawContext context, int x, int y);
-    @Shadow protected abstract boolean isPointWithinBounds(int x, int y, int w, int h, double pX, double pY);
-    @Shadow @Final protected ScreenHandler handler;
-    @Shadow protected int x, y, backgroundWidth, backgroundHeight;
+    @Shadow protected abstract void slotClicked(Slot slot, int invSlot, int button, ContainerInput slotActionType);
+    @Shadow protected abstract boolean isHovering(int x, int y, int w, int h, double pX, double pY);
+    @Shadow @Final protected AbstractContainerMenu menu;
+    @Shadow protected int leftPos, topPos;
+    @Shadow @Final protected int imageWidth, imageHeight;
 
     protected AbstractContainerScreenMixin() { super(null); }
 
     @Override
-    public void Chestifier$onMouseClick(Slot slot, int invSlot, int button, SlotActionType slotActionType) {
-        this.onMouseClick(slot, invSlot, button, slotActionType);
+    public void Chestifier$onMouseClick(Slot slot, int invSlot, int button, ContainerInput slotActionType) {
+        this.slotClicked(slot, invSlot, button, slotActionType);
     }
 
     @Override
     public int Chestifier$getPlayerInventoryStartIndex() {
-        if (handler instanceof PlayerScreenHandler) {
+        if (menu instanceof InventoryMenu) {
             return PLAYERINVCOLS;
         } else {
-            return this.handler.slots.size() - PLAYERSLOTS;
+            return this.menu.slots.size() - PLAYERSLOTS;
         }
     }
 
@@ -91,100 +90,99 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         }
     }
 
-    // Draws frozen-slot markers before the vanilla slot/item render pass (render HEAD),
-    // so the marker sits behind the item instead of on top of it. drawSlot() isn't a
+    // Draws frozen-slot markers before the vanilla slot/item extraction pass (HEAD),
+    // so the marker sits behind the item instead of on top of it. extractSlot() isn't a
     // reliable hook for this: it isn't called for the hotbar row on all screens.
-    @Inject(method = "render", at = @At("HEAD"))
-    public void Chestifier$DrawFrozenSlotMarkers(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        if (!isSupportedScreenHandler(handler) || KeyModifiers.hasShiftDown()) {
+    @Inject(method = "extractRenderState", at = @At("HEAD"))
+    public void Chestifier$DrawFrozenSlotMarkers(GuiGraphicsExtractor extractor, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+        if (!isSupportedScreenHandler(menu) || KeyModifiers.hasShiftDown()) {
             return;
         }
         for (int i = 0; i < PLAYERSLOTS; i++) {
             if (FrozenSlotDatabase.isSlotFrozen(i)) {
-                Slot slot = this.handler.slots.get(Chestifier$slotIndexfromPlayerInventoryIndex(i));
-                context.drawTexture(RenderPipelines.GUI_TEXTURED_PREMULTIPLIED_ALPHA, ExtendedGuiChest.ICONS, x + slot.x, y + slot.y, 7 * 18 + 1, 3 * 18 + 1, 16, 16, 256, 256);
+                Slot slot = this.menu.slots.get(Chestifier$slotIndexfromPlayerInventoryIndex(i));
+                extractor.blit(RenderPipelines.GUI_TEXTURED_PREMULTIPLIED_ALPHA, ExtendedGuiChest.ICONS, leftPos + slot.x, topPos + slot.y, 7 * 18 + 1, 3 * 18 + 1, 16, 16, 256, 256);
             }
         }
     }
 
-    // drawSlot in 1.21.11 takes (DrawContext, Slot, int mouseX, int mouseY)
-    @Inject(method = "drawSlot", at = @At("RETURN"))
-    public void Chestifier$DrawSlotIndex(DrawContext context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
+    @Inject(method = "extractSlot", at = @At("RETURN"))
+    public void Chestifier$DrawSlotIndex(GuiGraphicsExtractor extractor, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
         if (KeyModifiers.hasAltDown()) {
-            context.drawText(this.textRenderer, Integer.toString(slot.id), slot.x, slot.y, 0x808090, false);
+            extractor.text(this.font, Integer.toString(slot.index), slot.x, slot.y, 0x808090, false);
         }
     }
 
-    @Inject(method = "render", at = @At("RETURN"))
-    public void Chestifier$renderSpecialButtons(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        HandledScreen<?> hScreen = (HandledScreen<?>) (Object) this;
+    @Inject(method = "extractRenderState", at = @At("RETURN"))
+    public void Chestifier$renderSpecialButtons(GuiGraphicsExtractor extractor, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+        AbstractContainerScreen<?> hScreen = (AbstractContainerScreen<?>) (Object) this;
 
-        ExtendedGuiChest.drawPlayerInventoryBroom(context, hScreen, x + backgroundWidth, y + backgroundHeight - 30 - 3 * 18, mouseX, mouseY);
-        if (isSupportedScreenHandler(handler)) {
+        ExtendedGuiChest.drawPlayerInventoryBroom(extractor, hScreen, leftPos + imageWidth, topPos + imageHeight - 30 - 3 * 18, mouseX, mouseY);
+        if (isSupportedScreenHandler(menu)) {
 
             int cols = getSlotColumnCount();
             int rows = getSlotRowCount();
 
             if (ConfigurationHandler.enableColumnButtons()) {
-                int startx = (x + backgroundWidth / 2) - (18 / 2) * cols;
+                int startx = (leftPos + imageWidth / 2) - (18 / 2) * cols;
                 for (int i = 0; i < cols; i++) {
-                    ExtendedGuiChest.drawTexturedModalRectWithMouseHighlight(hScreen, context, startx + i * 18, y + -18,           1 * 18, 2 * 18, 18, 18, mouseX, mouseY);
+                    ExtendedGuiChest.drawTexturedModalRectWithMouseHighlight(hScreen, extractor, startx + i * 18, topPos + -18,           1 * 18, 2 * 18, 18, 18, mouseX, mouseY);
                 }
-                startx = (x + backgroundWidth / 2) - 9 * PLAYERINVCOLS;
+                startx = (leftPos + imageWidth / 2) - 9 * PLAYERINVCOLS;
                 for (int i = 0; i < PLAYERINVCOLS; i++) {
-                    ExtendedGuiChest.drawTexturedModalRectWithMouseHighlight(hScreen, context, startx + i * 18, y + 40 + (rows + 4) * 18, 9 * 18, 2 * 18, 18, 18, mouseX, mouseY);
+                    ExtendedGuiChest.drawTexturedModalRectWithMouseHighlight(hScreen, extractor, startx + i * 18, topPos + 40 + (rows + 4) * 18, 9 * 18, 2 * 18, 18, 18, mouseX, mouseY);
                 }
             }
 
             if (ConfigurationHandler.enableRowButtons()) {
                 for (int i = 0; i < rows; i++) {
-                    ExtendedGuiChest.drawTexturedModalRectWithMouseHighlight(hScreen, context, x + -18, y + 17 + i * 18,        1 * 18, 2 * 18, 18, 18, mouseX, mouseY);
+                    ExtendedGuiChest.drawTexturedModalRectWithMouseHighlight(hScreen, extractor, leftPos + -18, topPos + 17 + i * 18,        1 * 18, 2 * 18, 18, 18, mouseX, mouseY);
                 }
                 for (int i = 0; i < PLAYERINVROWS; i++) {
-                    ExtendedGuiChest.drawTexturedModalRectWithMouseHighlight(hScreen, context, x + -18, y + 28 + (i + rows) * 18, 9 * 18, 2 * 18, 18, 18, mouseX, mouseY);
+                    ExtendedGuiChest.drawTexturedModalRectWithMouseHighlight(hScreen, extractor, leftPos + -18, topPos + 28 + (i + rows) * 18, 9 * 18, 2 * 18, 18, 18, mouseX, mouseY);
                 }
             }
 
             if (ConfigurationHandler.enableSearch()) {
                 if (searchWidget == null) {
-                    searchWidget = new TextFieldWidget(textRenderer, x + backgroundWidth - 85, y + 3, 80, 12, Text.literal("Search"));
+                    searchWidget = new EditBox(font, leftPos + imageWidth - 85, topPos + 3, 80, 12, Component.literal("Search"));
                 } else {
-                    searchWidget.setX(x + backgroundWidth - 85);
-                    searchWidget.setY(y + 3);
+                    searchWidget.setX(leftPos + imageWidth - 85);
+                    searchWidget.setY(topPos + 3);
                 }
-                searchWidget.render(context, mouseX, mouseY, delta);
+                searchWidget.extractRenderState(extractor, mouseX, mouseY, delta);
 
-                String search = searchWidget.getText().toLowerCase();
+                String search = searchWidget.getValue().toLowerCase();
                 if (!search.isEmpty()) {
                     int highlight = (int) Long.parseLong(ConfigurationHandler.getHighlightColor().toUpperCase(), 16);
-                    for (int i = 0; i < this.handler.slots.size(); i++) {
-                        Slot slot = this.handler.slots.get(i);
-                        Item item = slot.getStack().getItem();
+                    for (int i = 0; i < this.menu.slots.size(); i++) {
+                        Slot slot = this.menu.slots.get(i);
+                        Item item = slot.getItem().getItem();
                         if (item == Items.AIR) {
                             continue;
                         }
-                        if (I18n.translate(item.getTranslationKey()).toLowerCase().contains(search)) {
-                            context.fill(x + slot.x - 1, y + slot.y - 1, x + slot.x + 18 - 1, y + slot.y + 18 - 1, highlight);
+                        if (I18n.get(item.getDescriptionId()).toLowerCase().contains(search)) {
+                            extractor.fill(leftPos + slot.x - 1, topPos + slot.y - 1, leftPos + slot.x + 18 - 1, topPos + slot.y + 18 - 1, highlight);
                         }
                     }
                 }
             }
-            ExtendedGuiChest.drawPlayerInventoryAllUp(context, hScreen, x + backgroundWidth, y + backgroundHeight - 30 - 2 * 18, mouseX, mouseY);
-            ExtendedGuiChest.drawChestInventoryBroom(context, hScreen, x + backgroundWidth, y + 17, mouseX, mouseY);
-            ExtendedGuiChest.drawChestInventoryAllDown(context, hScreen, x + this.backgroundWidth, y + 17 + 18, mouseX, mouseY);
+            ExtendedGuiChest.drawPlayerInventoryAllUp(extractor, hScreen, leftPos + imageWidth, topPos + imageHeight - 30 - 2 * 18, mouseX, mouseY);
+            ExtendedGuiChest.drawChestInventoryBroom(extractor, hScreen, leftPos + imageWidth, topPos + 17, mouseX, mouseY);
+            ExtendedGuiChest.drawChestInventoryAllDown(extractor, hScreen, leftPos + this.imageWidth, topPos + 17 + 18, mouseX, mouseY);
         }
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-    public void Chestifier$checkMyButtons(Click click, boolean bl, CallbackInfoReturnable<Boolean> cir) {
-        double mouseX = click.x();
-        double mouseY = click.y();
-        int mouseButton = click.button();
+    public void Chestifier$checkMyButtons(MouseButtonEvent event, boolean bl, CallbackInfoReturnable<Boolean> cir) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int mouseButton = event.button();
 
-        if (isSupportedScreenHandler(handler)
+        if (isSupportedScreenHandler(menu)
         && ConfigurationHandler.enableSearch()
         && searchWidget != null
-        && searchWidget.mouseClicked(click, bl)) {
+        && searchWidget.mouseClicked(event, bl)) {
             searchWidget.setFocused(true);
             cir.setReturnValue(true);
             cir.cancel();
@@ -193,35 +191,35 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
             searchWidget.setFocused(false);
         }
 
-        if (mouseX >= x + backgroundWidth && mouseX <= x + backgroundWidth + 18) {
-            HandledScreen<?> hScreen = (HandledScreen<?>) (Screen) this;
-            if (mouseY >= y + backgroundHeight - 30 - 3 * 18 && mouseY < y + backgroundHeight - 30 - 2 * 18) {
-                ExtendedGuiChest.sortInventory(this, false, MinecraftClient.getInstance().player.getInventory());
+        if (mouseX >= leftPos + imageWidth && mouseX <= leftPos + imageWidth + 18) {
+            AbstractContainerScreen<?> hScreen = (AbstractContainerScreen<?>) (Screen) this;
+            if (mouseY >= topPos + imageHeight - 30 - 3 * 18 && mouseY < topPos + imageHeight - 30 - 2 * 18) {
+                ExtendedGuiChest.sortInventory(this, false, Minecraft.getInstance().player.getInventory());
                 cir.setReturnValue(true);
                 cir.cancel();
                 return;
-            } else if (mouseY >= y + backgroundHeight - 30 - 2 * 18 && mouseY < y + backgroundHeight - 30 - 1 * 18) {
-                if (!isSupportedScreenHandler(handler)) return;
+            } else if (mouseY >= topPos + imageHeight - 30 - 2 * 18 && mouseY < topPos + imageHeight - 30 - 1 * 18) {
+                if (!isSupportedScreenHandler(menu)) return;
                 ExtendedGuiChest.moveMatchingItems(hScreen, false);
                 cir.setReturnValue(true);
                 cir.cancel();
                 return;
-            } else if (!isSupportedScreenHandler(handler)) {
+            } else if (!isSupportedScreenHandler(menu)) {
                 return;
-            } else if (mouseY > y + 17 && mouseY < y + 17 + 18) {
-                if (handler.slots.isEmpty()) return;
-                ExtendedGuiChest.sortInventory(this, true, handler.getSlot(0).inventory);
+            } else if (mouseY > topPos + 17 && mouseY < topPos + 17 + 18) {
+                if (menu.slots.isEmpty()) return;
+                ExtendedGuiChest.sortInventory(this, true, menu.getSlot(0).container);
                 cir.setReturnValue(true);
                 cir.cancel();
                 return;
-            } else if (mouseY > y + 17 + 18 && mouseY < y + 17 + 36) {
+            } else if (mouseY > topPos + 17 + 18 && mouseY < topPos + 17 + 36) {
                 ExtendedGuiChest.moveMatchingItems(hScreen, true);
                 cir.setReturnValue(true);
                 cir.cancel();
                 return;
             }
         }
-        if (!isSupportedScreenHandler(handler)) {
+        if (!isSupportedScreenHandler(menu)) {
             return;
         }
         if (mouseButton == 0 && checkForMyButtons(mouseX, mouseY)) {
@@ -240,8 +238,8 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         int rows = getSlotRowCount();
         int cols = getSlotColumnCount();
 
-        if (ConfigurationHandler.enableRowButtons() && mouseX >= x - 18 && mouseX <= x) {
-            int deltay = (int) mouseY - y;
+        if (ConfigurationHandler.enableRowButtons() && mouseX >= leftPos - 18 && mouseX <= leftPos) {
+            int deltay = (int) mouseY - topPos;
             if (deltay < rows * 18 + 17) {
                 clickSlotsInRow((deltay - 17) / 18);
                 return true;
@@ -250,18 +248,18 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
                 return true;
             }
         }
-        if (ConfigurationHandler.enableColumnButtons() && mouseX > x + 7 && mouseX < x + backgroundWidth) {
+        if (ConfigurationHandler.enableColumnButtons() && mouseX > leftPos + 7 && mouseX < leftPos + imageWidth) {
             boolean isChest;
             int column;
-            if (mouseY > y - 18 && mouseY < y) {
-                int startx = x + backgroundWidth / 2 - (18 / 2) * cols;
+            if (mouseY > topPos - 18 && mouseY < topPos) {
+                int startx = leftPos + imageWidth / 2 - (18 / 2) * cols;
                 isChest = true;
                 column = ((int) mouseX - startx) / 18;
                 if (column < 0 || column >= cols) {
                     return false;
                 }
-            } else if (mouseY > y + 40 + (rows + PLAYERINVROWS) * 18 && mouseY < y + 40 + (rows + PLAYERINVROWS) * 18 + 18) {
-                int startx = x + backgroundWidth / 2 - (18 / 2) * PLAYERINVCOLS;
+            } else if (mouseY > topPos + 40 + (rows + PLAYERINVROWS) * 18 && mouseY < topPos + 40 + (rows + PLAYERINVROWS) * 18 + 18) {
+                int startx = leftPos + imageWidth / 2 - (18 / 2) * PLAYERINVCOLS;
                 isChest = false;
                 column = ((int) mouseX - startx) / 18;
                 if (column < 0 || column >= PLAYERINVCOLS) {
@@ -277,12 +275,12 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     }
 
     private boolean checkForToggleFrozen(double mouseX, double mouseY) {
-        for (int i = 0; i < this.handler.slots.size(); ++i) {
+        for (int i = 0; i < this.menu.slots.size(); ++i) {
             int invIndex = this.Chestifier$playerInventoryIndexFromSlotIndex(i);
             if (invIndex == -1)
                 continue;
-            Slot slot = this.handler.slots.get(i);
-            if (isPointWithinBounds(slot.x, slot.y, 16, 16, mouseX, mouseY)) {
+            Slot slot = this.menu.slots.get(i);
+            if (isHovering(slot.x, slot.y, 16, 16, mouseX, mouseY)) {
                 FrozenSlotDatabase.setSlotFrozen(invIndex, !FrozenSlotDatabase.isSlotFrozen(invIndex));
                 return true;
             }
@@ -304,7 +302,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
 
         for (int slot = firstSlot; slot < firstSlot + cols; slot++)
             if (FrozenSlotDatabase.isSlotActionable(Chestifier$playerInventoryIndexFromSlotIndex(slot))) {
-                slotClick(slot, 0, SlotActionType.QUICK_MOVE);
+                slotClick(slot, 0, ContainerInput.QUICK_MOVE);
             }
     }
 
@@ -324,54 +322,53 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         for (int i = 0; i < count; i++) {
             int slot = first + i * cols;
             if (FrozenSlotDatabase.isSlotActionable(Chestifier$playerInventoryIndexFromSlotIndex(slot)))
-                slotClick(slot, 0, SlotActionType.QUICK_MOVE);
+                slotClick(slot, 0, ContainerInput.QUICK_MOVE);
         }
     }
 
-    private void slotClick(int slot, int mouseButton, SlotActionType clickType) {
+    private void slotClick(int slot, int mouseButton, ContainerInput clickType) {
         ((SlotClicker) this).Chestifier$onMouseClick(null, slot, mouseButton, clickType);
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    public void Chestifier$keyPressed(KeyInput keyInput, CallbackInfoReturnable<Boolean> cir) {
-        HandledScreen<?> hScreen = (HandledScreen<?>) (Screen) this;
-        int keyCode = keyInput.key();
-        int scanCode = keyInput.scancode();
+    public void Chestifier$keyPressed(KeyEvent keyEvent, CallbackInfoReturnable<Boolean> cir) {
+        AbstractContainerScreen<?> hScreen = (AbstractContainerScreen<?>) (Screen) this;
+        int keyCode = keyEvent.key();
 
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             return;
         }
 
-        if (isSupportedScreenHandler(handler)
+        if (isSupportedScreenHandler(menu)
         && ConfigurationHandler.enableSearch()
         && searchWidget != null
         && searchWidget.isActive()) {
-            boolean value = searchWidget.keyPressed(keyInput);
+            boolean value = searchWidget.keyPressed(keyEvent);
             cir.setReturnValue(value);
             cir.cancel();
             return;
         }
 
-        if (Chestifier.keySortPlInv.matchesKey(keyInput)) {
-            ExtendedGuiChest.sortInventory(this, false, MinecraftClient.getInstance().player.getInventory());
+        if (Chestifier.keySortPlInv.matches(keyEvent)) {
+            ExtendedGuiChest.sortInventory(this, false, Minecraft.getInstance().player.getInventory());
             cir.setReturnValue(true);
             cir.cancel();
-        } else if (!isSupportedScreenHandler(handler)) {
+        } else if (!isSupportedScreenHandler(menu)) {
             return;
-        } else if (Chestifier.keyMoveToChest.matchesKey(keyInput)) {
+        } else if (Chestifier.keyMoveToChest.matches(keyEvent)) {
             ExtendedGuiChest.moveMatchingItems(hScreen, false);
             cir.setReturnValue(true);
             cir.cancel();
-        } else if (Chestifier.keySortChest.matchesKey(keyInput)) {
-            if (handler.slots.isEmpty()) return;
-            ExtendedGuiChest.sortInventory(this, true, handler.getSlot(0).inventory);
+        } else if (Chestifier.keySortChest.matches(keyEvent)) {
+            if (menu.slots.isEmpty()) return;
+            ExtendedGuiChest.sortInventory(this, true, menu.getSlot(0).container);
             cir.setReturnValue(true);
             cir.cancel();
-        } else if (Chestifier.keyMoveToPlInv.matchesKey(keyInput)) {
+        } else if (Chestifier.keyMoveToPlInv.matches(keyEvent)) {
             ExtendedGuiChest.moveMatchingItems(hScreen, true);
             cir.setReturnValue(true);
             cir.cancel();
-        } else if (Chestifier.keySearchBox.matchesKey(keyInput)) {
+        } else if (Chestifier.keySearchBox.matches(keyEvent)) {
             ConfigurationHandler.toggleSearchBox();
             cir.setReturnValue(true);
             cir.cancel();
@@ -379,29 +376,29 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     }
 
     @Override
-    public boolean charTyped(CharInput charInput) {
-        if (isSupportedScreenHandler(handler)
+    public boolean charTyped(CharacterEvent charEvent) {
+        if (isSupportedScreenHandler(menu)
         && ConfigurationHandler.enableSearch()
         && searchWidget != null
         && searchWidget.isActive()) {
-            return searchWidget.charTyped(charInput);
+            return searchWidget.charTyped(charEvent);
         }
-        return super.charTyped(charInput);
+        return super.charTyped(charEvent);
     }
 
     private boolean loggedScreenHandlerClass = false;
 
-    public boolean isSupportedScreenHandler(ScreenHandler handler) {
+    public boolean isSupportedScreenHandler(AbstractContainerMenu handler) {
         if (handler == null) {
             return false;
         }
-        if (handler instanceof GenericContainerScreenHandler || handler instanceof ShulkerBoxScreenHandler) {
+        if (handler instanceof ChestMenu || handler instanceof ShulkerBoxMenu) {
             return true;
         }
         if (Chestifier.getHelperForHandler(handler) != null) {
             return true;
         }
-        if (!loggedScreenHandlerClass && !handler.getClass().getSimpleName().startsWith("class_")) {
+        if (!loggedScreenHandlerClass) {
             LoggerFactory.getLogger(this.getClass()).info("opening class {}/{}", handler.getClass().getSimpleName(), handler.getClass().getCanonicalName());
             loggedScreenHandlerClass = true;
         }
@@ -410,9 +407,9 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
 
     public int getSlotRowCount() {
         if (ConfigurationHandler.allowExtraLargeChests()) {
-            ChestGuiInfo helper = Chestifier.getHelperForHandler(handler);
+            ChestGuiInfo helper = Chestifier.getHelperForHandler(menu);
             if (helper != null) {
-                int rows = helper.getRows(handler);
+                int rows = helper.getRows(menu);
                 if (rows != -1) {
                     return rows;
                 }
@@ -425,9 +422,9 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     public int getSlotColumnCount() {
         int size = chestSlotCount();
         if (ConfigurationHandler.allowExtraLargeChests()) {
-            ChestGuiInfo helper = Chestifier.getHelperForHandler(handler);
+            ChestGuiInfo helper = Chestifier.getHelperForHandler(menu);
             if (helper != null) {
-                int cols = helper.getColumns(handler);
+                int cols = helper.getColumns(menu);
                 if (cols != -1) {
                     return cols;
                 }
@@ -438,6 +435,6 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     }
 
     private int chestSlotCount() {
-        return handler.slots.size() - PLAYERSLOTS;
+        return menu.slots.size() - PLAYERSLOTS;
     }
 }
