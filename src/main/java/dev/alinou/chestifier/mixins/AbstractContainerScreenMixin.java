@@ -88,6 +88,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     }
 
     // Draws frozen-slot markers behind the items, before the slot render loop.
+    // Slot coordinates are already GUI-relative here, the caller has translated to (x, y).
     @Inject(method = "drawSlots", at = @At("HEAD"))
     public void Chestifier$DrawFrozenSlotMarkers(DrawContext context, CallbackInfo ci) {
         if (!isSupportedScreenHandler(handler) || KeyModifiers.hasShiftDown()) {
@@ -96,7 +97,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         for (int i = 0; i < PLAYERSLOTS; i++) {
             if (FrozenSlotDatabase.isSlotFrozen(i)) {
                 Slot slot = this.handler.slots.get(Chestifier$slotIndexfromPlayerInventoryIndex(i));
-                context.drawTexture(RenderLayer::getGuiTextured, ExtendedGuiChest.ICONS, x + slot.x, y + slot.y, 7 * 18 + 1, 3 * 18 + 1, 16, 16, 256, 256);
+                context.drawTexture(RenderLayer::getGuiTextured, ExtendedGuiChest.ICONS, slot.x, slot.y, 7 * 18 + 1, 3 * 18 + 1, 16, 16, 256, 256);
             }
         }
     }

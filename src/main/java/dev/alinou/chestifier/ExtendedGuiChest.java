@@ -1,6 +1,5 @@
 package dev.alinou.chestifier;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.alinou.chestifier.interfaces.SlotClicker;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -95,31 +94,31 @@ public class ExtendedGuiChest extends HandledScreen {
         myTooltip(context, x, y, 18, 18, mouseX, mouseY, Text.translatable("chestifier.matchup"));
     }
 
+    private static final int OPAQUE = 0xFFFFFFFF;
+    private static final int TONED_DOWN = 0x4DFFFFFF;
+
     public static void drawTexturedModalRectWithMouseHighlight(HandledScreen<?> screen, DrawContext context, int screenx, int screeny, int textx, int texty, int sizex, int sizey, int mousex, int mousey) {
         boolean hovered = mousex >= screenx && mousex < screenx + sizex && mousey >= screeny && mousey < screeny + sizey;
         if (hovered) {
-            context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            drawIcon(context, screenx, screeny, textx, texty, sizex, sizey, OPAQUE);
         } else if (ConfigurationHandler.halfSizeButtons()) {
             MatrixStack matrices = context.getMatrices();
             matrices.push();
             matrices.translate(screenx + sizex / 4.0f, screeny + sizey / 4.0f, 0);
             matrices.scale(0.5f, 0.5f, 1.0f);
             matrices.translate(-(screenx + sizex / 4.0f), -(screeny + sizey / 4.0f), 0);
-            if (ConfigurationHandler.toneDownButtons()) {
-                RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.3f);
-                context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
-                RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-            } else {
-                context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
-            }
+            drawIcon(context, screenx, screeny, textx, texty, sizex, sizey,
+                    ConfigurationHandler.toneDownButtons() ? TONED_DOWN : OPAQUE);
             matrices.pop();
         } else if (ConfigurationHandler.toneDownButtons()) {
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.3f);
-            context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+            drawIcon(context, screenx, screeny, textx, texty, sizex, sizey, TONED_DOWN);
         } else {
-            context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            drawIcon(context, screenx, screeny, textx, texty, sizex, sizey, OPAQUE);
         }
+    }
+
+    private static void drawIcon(DrawContext context, int screenx, int screeny, int textx, int texty, int sizex, int sizey, int color) {
+        context.drawTexture(RenderLayer::getGuiTextured, ICONS, screenx, screeny, textx, texty, sizex, sizey, sizex, sizey, 256, 256, color);
     }
 
     private static void myTooltip(DrawContext context, int screenx, int screeny, int sizex, int sizey, int mousex, int mousey, Text tooltip) {
