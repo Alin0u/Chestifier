@@ -1,7 +1,6 @@
 {
     "required": true,
     "package": "dev.alinou.chestifier.mixins",
-    "refmap": "Chestifier-refmap.json",
     "minVersion": "0.8",
     "client": [
         "GuiContainerMixin",
