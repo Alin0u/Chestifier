@@ -1,5 +1,6 @@
 package dev.alinou.chestifier.mixins;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import dev.alinou.chestifier.ConfigurationHandler;
 import dev.alinou.chestifier.Chestifier;
 import dev.alinou.chestifier.ExtendedGuiChest;
@@ -26,7 +27,6 @@ import net.minecraft.world.inventory.ShulkerBoxMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import org.lwjgl.glfw.GLFW;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -335,7 +335,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         AbstractContainerScreen<?> hScreen = (AbstractContainerScreen<?>) (Screen) this;
         int keyCode = keyEvent.key();
 
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+        if (keyCode == InputConstants.KEY_ESCAPE) {
             return;
         }
 

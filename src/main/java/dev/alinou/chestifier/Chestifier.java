@@ -9,7 +9,6 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.KeyMapping.Category;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import org.lwjgl.glfw.GLFW;
 import dev.alinou.chestifier.storagemodapi.ChestGuiInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,11 +31,11 @@ public class Chestifier implements ClientModInitializer {
         FrozenSlotDatabase.init(FabricLoader.getInstance().getConfigDir().toFile());
 
         Category category = Category.register(Identifier.fromNamespaceAndPath(MODID, "key.categories.chestifier"));
-        keySortChest  = registerKey("sortchest",  GLFW.GLFW_KEY_KP_7, category);
-        keyMoveToChest= registerKey("matchup",    GLFW.GLFW_KEY_KP_8, category);
-        keySortPlInv  = registerKey("sortplayer", GLFW.GLFW_KEY_KP_1, category);
-        keyMoveToPlInv= registerKey("matchdown",  GLFW.GLFW_KEY_KP_2, category);
-        keySearchBox  = registerKey("searchbox",  GLFW.GLFW_KEY_UNKNOWN, category);
+        keySortChest  = registerKey("sortchest",  InputConstants.KEY_NUMPAD7, category);
+        keyMoveToChest= registerKey("matchup",    InputConstants.KEY_NUMPAD8, category);
+        keySortPlInv  = registerKey("sortplayer", InputConstants.KEY_NUMPAD1, category);
+        keyMoveToPlInv= registerKey("matchdown",  InputConstants.KEY_NUMPAD2, category);
+        keySearchBox  = registerKey("searchbox",  0, category);
     }
 
     public static void registerMod(String screenHandlerClassName, ChestGuiInfo helper) {
@@ -61,7 +60,7 @@ public class Chestifier implements ClientModInitializer {
     }
 
     private KeyMapping registerKey(String key, int code, Category category) {
-        KeyMapping binding = new KeyMapping("key.chestifier." + key, InputConstants.Type.KEYSYM, code, category);
+        KeyMapping binding = new KeyMapping("key.chestifier." + key, InputConstants.Type.KEYBOARD, code, category);
         KeyMappingHelper.registerKeyMapping(binding);
         return binding;
     }
