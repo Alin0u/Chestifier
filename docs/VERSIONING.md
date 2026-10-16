@@ -3,10 +3,20 @@
 Chestifier targets multiple Minecraft versions through separate branches,
 not through a single branch with a wide `minecraft` range in
 `fabric.mod.json`. Branches are named after the **exact patch version
-they were built and launch-tested against**, and `minecraft` in
-`fabric.mod.json` is always an exact pin (e.g. `~1.21.11`), never an
-open-ended range, unless a range has actually been verified across every
-patch it claims to cover. 
+they were built and launch-tested against**.
+
+## Compatibility range
+
+The `minecraft` dependency in `fabric.mod.json` has a lower bound only
+(e.g. `>=26.3`), with no upper bound. CurseForge files cannot be edited
+after upload, so a closed range would make the mod hard-fail on every new
+Minecraft release until a new file is published, even when it works fine.
+
+What the jar claims to support is decided by the game versions tagged on
+CurseForge and Modrinth, not by the open range. Only tag a Minecraft
+version after it has been launch-tested. If a newer version breaks the
+mod, pull the file or note it on the project page, and create a new
+version branch.
 
 ## Repo layout
 
@@ -29,6 +39,7 @@ one branch gets cherry-picked across, it isn't merged between them.
 
 | Branch            | Minecraft     | Status    |
 |--------------------|---------------|-----------|
+| `fabric_26.3`      | 26.3 and later (tag only tested versions) | confirmed working |
 | `fabric_1.21.11`   | 1.21.11       | confirmed working |
 | `fabric_1.20.5`    | 1.20.5, 1.20.6 | confirmed working |
 
