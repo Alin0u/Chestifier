@@ -222,12 +222,12 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         if (!isSupportedScreenHandler(menu)) {
             return;
         }
-        if (mouseButton == 0 && checkForMyButtons(mouseX, mouseY)) {
+        if (mouseButton == InputConstants.MOUSE_BUTTON_LEFT && checkForMyButtons(mouseX, mouseY)) {
             cir.setReturnValue(true);
             cir.cancel();
             return;
         }
-        if (mouseButton == 2 && checkForToggleFrozen(mouseX, mouseY)) {
+        if (mouseButton == InputConstants.MOUSE_BUTTON_MIDDLE && checkForToggleFrozen(mouseX, mouseY)) {
             cir.setReturnValue(true);
             cir.cancel();
             return;

@@ -252,6 +252,8 @@ public class ExtendedGuiChest extends AbstractContainerScreen {
             if (!isChestToPlayer && !FrozenSlotDatabase.isSlotActionable(i))
                 continue;
             ItemStack fromStack = from.getItem(i);
+            if (fromStack.isEmpty())
+                continue;
             int slot;
             if (isChestToPlayer) {
                 slot = i;
@@ -262,6 +264,7 @@ public class ExtendedGuiChest extends AbstractContainerScreen {
                 ItemStack toStack = to.getItem(j);
                 if (ItemStack.isSameItemSameComponents(fromStack, toStack)) {
                     ((SlotClicker) screen).Chestifier$onMouseClick(null, slot, 0, ContainerInput.QUICK_MOVE);
+                    break;
                 }
             }
         }
