@@ -4,6 +4,8 @@
     "chestifier.sortplayer": "Sort inventory",
     "chestifier.matchdown": "Move matches to player",
     "chestifier.matchup": "Move matches to chest",
+    "chestifier.searchlock.on": "Search locked: kept when opening other chests",
+    "chestifier.searchlock.off": "Search unlocked: cleared when closing the chest",
 
     "key.chestifier.sortchest" : "Sort chest",
     "key.chestifier.sortplayer": "Sort inventory",

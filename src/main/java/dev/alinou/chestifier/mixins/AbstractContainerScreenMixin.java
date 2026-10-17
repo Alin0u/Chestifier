@@ -45,6 +45,8 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     private static final int PLAYERINVROWS = InventoryLayout.PLAYER_INV_ROWS;
 
     private EditBox searchWidget;
+    private static boolean searchLocked = false;
+    private static String lockedSearch = "";
 
     @Shadow protected abstract void slotClicked(Slot slot, int invSlot, int button, ContainerInput slotActionType);
     @Shadow protected abstract boolean isHovering(int x, int y, int w, int h, double pX, double pY);
@@ -146,11 +148,36 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
             if (ConfigurationHandler.enableSearch()) {
                 if (searchWidget == null) {
                     searchWidget = new EditBox(font, leftPos + imageWidth - 85, topPos + 3, 80, 12, Component.literal("Search"));
+                    if (searchLocked) {
+                        searchWidget.setValue(lockedSearch);
+                    }
                 } else {
                     searchWidget.setX(leftPos + imageWidth - 85);
                     searchWidget.setY(topPos + 3);
                 }
                 searchWidget.extractRenderState(extractor, mouseX, mouseY, delta);
+                if (searchLocked) {
+                    lockedSearch = searchWidget.getValue();
+                }
+                int lx = leftPos + imageWidth - 99;
+                int ly = topPos + 3;
+                boolean lockHover = mouseX >= lx && mouseX < lx + 12 && mouseY >= ly && mouseY < ly + 12;
+                int lockColor = searchLocked ? 0xFFD04040 : 0xFF3FBF3F;
+                extractor.fill(lx, ly, lx + 12, ly + 12, lockHover ? 0xFF505050 : 0xFF303030);
+                extractor.fill(lx + 2, ly + 5, lx + 10, ly + 11, lockColor);
+                extractor.fill(lx + 5, ly + 7, lx + 7, ly + 9, 0xFF303030);
+                if (searchLocked) {
+                    extractor.fill(lx + 3, ly + 1, lx + 9, ly + 2, lockColor);
+                    extractor.fill(lx + 3, ly + 2, lx + 4, ly + 5, lockColor);
+                    extractor.fill(lx + 8, ly + 2, lx + 9, ly + 5, lockColor);
+                } else {
+                    extractor.fill(lx + 3, ly, lx + 9, ly + 1, lockColor);
+                    extractor.fill(lx + 3, ly + 1, lx + 4, ly + 5, lockColor);
+                    extractor.fill(lx + 8, ly + 1, lx + 9, ly + 3, lockColor);
+                }
+                if (lockHover) {
+                    extractor.setTooltipForNextFrame(font, Component.translatable(searchLocked ? "chestifier.searchlock.on" : "chestifier.searchlock.off"), mouseX, mouseY);
+                }
 
                 String search = searchWidget.getValue().toLowerCase();
                 if (!search.isEmpty()) {
@@ -178,6 +205,19 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
         double mouseX = event.x();
         double mouseY = event.y();
         int mouseButton = event.button();
+
+        if (isSupportedScreenHandler(menu)
+        && ConfigurationHandler.enableSearch()
+        && searchWidget != null
+        && mouseButton == InputConstants.MOUSE_BUTTON_LEFT
+        && mouseX >= leftPos + imageWidth - 99 && mouseX < leftPos + imageWidth - 87
+        && mouseY >= topPos + 3 && mouseY < topPos + 15) {
+            searchLocked = !searchLocked;
+            lockedSearch = searchLocked ? searchWidget.getValue() : "";
+            cir.setReturnValue(true);
+            cir.cancel();
+            return;
+        }
 
         if (isSupportedScreenHandler(menu)
         && ConfigurationHandler.enableSearch()
