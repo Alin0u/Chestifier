@@ -4,7 +4,7 @@ import dev.alinou.chestifier.interfaces.SlotClicker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiPipeline;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -51,18 +51,18 @@ public class ExtendedGuiChest extends AbstractContainerScreen {
     }
 
     @Override
-    public void extractBackground(GuiGraphicsExtractor extractor, int mouseX, int mouseY, float partialTicks) {
+    public void extractBackground(GuiGraphicsExtractor extractor) {
         extractTransparentBackground(extractor);
         if (separateBlits) {
-            extractor.blit(RenderPipelines.GUI_TEXTURED, background, leftPos, topPos, 0, 0, this.imageWidth, this.inventoryRows * 18 + 17, 256, 256);
-            extractor.blit(RenderPipelines.GUI_TEXTURED, background, leftPos, topPos + this.inventoryRows * 18 + 17, 0, 126, this.imageWidth, 96, 256, 256);
+            extractor.blit(GuiPipeline.TEXTURED, background, leftPos, topPos, 0, 0, this.imageWidth, this.inventoryRows * 18 + 17, 256, 256);
+            extractor.blit(GuiPipeline.TEXTURED, background, leftPos, topPos + this.inventoryRows * 18 + 17, 0, 126, this.imageWidth, 96, 256, 256);
         } else {
-            extractor.blit(RenderPipelines.GUI_TEXTURED, background, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+            extractor.blit(GuiPipeline.TEXTURED, background, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
         }
     }
 
     @Override
-    protected void extractLabels(GuiGraphicsExtractor extractor, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor extractor) {
         extractor.text(this.font, this.title, 8, 6, 4210752, false);
         extractor.text(this.font, this.playerInventoryTitle, 8, (this.imageHeight - 96 + 2), 4210752, false);
     }
@@ -90,7 +90,7 @@ public class ExtendedGuiChest extends AbstractContainerScreen {
     public static void drawTexturedModalRectWithMouseHighlight(AbstractContainerScreen<?> screen, GuiGraphicsExtractor extractor, int screenx, int screeny, int textx, int texty, int sizex, int sizey, int mousex, int mousey) {
         boolean hovered = mousex >= screenx && mousex < screenx + sizex && mousey >= screeny && mousey < screeny + sizey;
         if (hovered) {
-            extractor.blit(RenderPipelines.GUI_TEXTURED, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            extractor.blit(GuiPipeline.TEXTURED, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
         } else if (ConfigurationHandler.halfSizeButtons()) {
             Matrix3x2fStack matrices = extractor.pose();
             matrices.pushMatrix();
@@ -98,15 +98,15 @@ public class ExtendedGuiChest extends AbstractContainerScreen {
             matrices.scale(0.5f, 0.5f);
             matrices.translate(-(screenx + sizex / 4.0f), -(screeny + sizey / 4.0f));
             if (ConfigurationHandler.toneDownButtons()) {
-                extractor.blit(RenderPipelines.GUI_TEXTURED_PREMULTIPLIED_ALPHA, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+                extractor.blit(GuiPipeline.TEXTURED_PREMULTIPLIED_ALPHA, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
             } else {
-                extractor.blit(RenderPipelines.GUI_TEXTURED, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+                extractor.blit(GuiPipeline.TEXTURED, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
             }
             matrices.popMatrix();
         } else if (ConfigurationHandler.toneDownButtons()) {
-            extractor.blit(RenderPipelines.GUI_TEXTURED_PREMULTIPLIED_ALPHA, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            extractor.blit(GuiPipeline.TEXTURED_PREMULTIPLIED_ALPHA, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
         } else {
-            extractor.blit(RenderPipelines.GUI_TEXTURED, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
+            extractor.blit(GuiPipeline.TEXTURED, ICONS, screenx, screeny, textx, texty, sizex, sizey, 256, 256);
         }
     }
 

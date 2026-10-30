@@ -16,7 +16,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiPipeline;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -96,27 +96,29 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
     // so the marker sits behind the item instead of on top of it. extractSlot() isn't a
     // reliable hook for this: it isn't called for the hotbar row on all screens.
     @Inject(method = "extractRenderState", at = @At("HEAD"))
-    public void Chestifier$DrawFrozenSlotMarkers(GuiGraphicsExtractor extractor, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+    public void Chestifier$DrawFrozenSlotMarkers(GuiGraphicsExtractor extractor, CallbackInfo ci) {
         if (!isSupportedScreenHandler(menu) || KeyModifiers.hasShiftDown()) {
             return;
         }
         for (int i = 0; i < PLAYERSLOTS; i++) {
             if (FrozenSlotDatabase.isSlotFrozen(i)) {
                 Slot slot = this.menu.slots.get(Chestifier$slotIndexfromPlayerInventoryIndex(i));
-                extractor.blit(RenderPipelines.GUI_TEXTURED_PREMULTIPLIED_ALPHA, ExtendedGuiChest.ICONS, leftPos + slot.x, topPos + slot.y, 7 * 18 + 1, 3 * 18 + 1, 16, 16, 256, 256);
+                extractor.blit(GuiPipeline.TEXTURED_PREMULTIPLIED_ALPHA, ExtendedGuiChest.ICONS, leftPos + slot.x, topPos + slot.y, 7 * 18 + 1, 3 * 18 + 1, 16, 16, 256, 256);
             }
         }
     }
 
     @Inject(method = "extractSlot", at = @At("RETURN"))
-    public void Chestifier$DrawSlotIndex(GuiGraphicsExtractor extractor, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
+    public void Chestifier$DrawSlotIndex(GuiGraphicsExtractor extractor, Slot slot, CallbackInfo ci) {
         if (KeyModifiers.hasAltDown()) {
             extractor.text(this.font, Integer.toString(slot.index), slot.x, slot.y, 0x808090, false);
         }
     }
 
     @Inject(method = "extractRenderState", at = @At("RETURN"))
-    public void Chestifier$renderSpecialButtons(GuiGraphicsExtractor extractor, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+    public void Chestifier$renderSpecialButtons(GuiGraphicsExtractor extractor, CallbackInfo ci) {
+        int mouseX = extractor.mouseX();
+        int mouseY = extractor.mouseY();
         AbstractContainerScreen<?> hScreen = (AbstractContainerScreen<?>) (Object) this;
 
         ExtendedGuiChest.drawPlayerInventoryBroom(extractor, hScreen, leftPos + imageWidth, topPos + imageHeight - 30 - 3 * 18, mouseX, mouseY);
@@ -155,7 +157,7 @@ public abstract class AbstractContainerScreenMixin extends Screen implements Slo
                     searchWidget.setX(leftPos + imageWidth - 85);
                     searchWidget.setY(topPos + 3);
                 }
-                searchWidget.extractRenderState(extractor, mouseX, mouseY, delta);
+                searchWidget.extractRenderState(extractor);
                 if (searchLocked) {
                     lockedSearch = searchWidget.getValue();
                 }
