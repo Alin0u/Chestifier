@@ -2,18 +2,24 @@ package dev.alinou.chestifier;
 
 import java.util.HashMap;
 import com.mojang.blaze3d.platform.InputConstants;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.KeyMapping.Category;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import dev.alinou.chestifier.storagemodapi.ChestGuiInfo;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Chestifier implements ClientModInitializer {
+@Mod(value = Chestifier.MODID, dist = Dist.CLIENT)
+public class Chestifier {
 
     static final String MODID = "chestifier";
     static final String MODNAME = "Chestifier";
@@ -25,17 +31,24 @@ public class Chestifier implements ClientModInitializer {
 
     private static final HashMap<String, ChestGuiInfo> modHelpers = new HashMap<>();
 
-    @Override
-    public void onInitializeClient() {
+    public Chestifier(IEventBus modBus, ModContainer container) {
         ConfigurationHandler.load();
-        FrozenSlotDatabase.init(FabricLoader.getInstance().getConfigDir().toFile());
+        FrozenSlotDatabase.init(FMLPaths.CONFIGDIR.get().toFile());
 
-        Category category = Category.register(Identifier.fromNamespaceAndPath(MODID, "key.categories.chestifier"));
-        keySortChest  = registerKey("sortchest",  InputConstants.KEY_NUMPAD7, category);
-        keyMoveToChest= registerKey("matchup",    InputConstants.KEY_NUMPAD8, category);
-        keySortPlInv  = registerKey("sortplayer", InputConstants.KEY_NUMPAD1, category);
-        keyMoveToPlInv= registerKey("matchdown",  InputConstants.KEY_NUMPAD2, category);
-        keySearchBox  = registerKey("searchbox",  0, category);
+        modBus.addListener(Chestifier::registerKeys);
+        if (ModList.get().isLoaded("cloth_config")) {
+            container.registerExtensionPoint(IConfigScreenFactory.class, (modContainer, parent) -> ClothConfigScreen.create(parent));
+        }
+    }
+
+    private static void registerKeys(RegisterKeyMappingsEvent event) {
+        Category category = new Category(Identifier.fromNamespaceAndPath(MODID, "key.categories.chestifier"));
+        event.registerCategory(category);
+        keySortChest  = registerKey(event, "sortchest",  InputConstants.KEY_NUMPAD7, category);
+        keyMoveToChest= registerKey(event, "matchup",    InputConstants.KEY_NUMPAD8, category);
+        keySortPlInv  = registerKey(event, "sortplayer", InputConstants.KEY_NUMPAD1, category);
+        keyMoveToPlInv= registerKey(event, "matchdown",  InputConstants.KEY_NUMPAD2, category);
+        keySearchBox  = registerKey(event, "searchbox",  0, category);
     }
 
     public static void registerMod(String screenHandlerClassName, ChestGuiInfo helper) {
@@ -59,9 +72,9 @@ public class Chestifier implements ClientModInitializer {
         return modHelpers.get(handler.getClass().getCanonicalName());
     }
 
-    private KeyMapping registerKey(String key, int code, Category category) {
+    private static KeyMapping registerKey(RegisterKeyMappingsEvent event, String key, int code, Category category) {
         KeyMapping binding = new KeyMapping("key.chestifier." + key, InputConstants.Type.KEYBOARD, code, category);
-        KeyMappingHelper.registerKeyMapping(binding);
+        event.register(binding);
         return binding;
     }
 }
