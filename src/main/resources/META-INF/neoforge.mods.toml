@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[12,)"
+loaderVersion = "[11,)"
 license = "MIT"
 
 [[mods]]
