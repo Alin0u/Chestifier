@@ -23,7 +23,7 @@ own risk. If a newer version breaks the mod, pull the file or note it in the com
   independent mod project (full source, same `README.md` content as
   `main`, its own `gradle.properties`).
 - `neoforge_<exact-mc-version>` - the same for NeoForge, e.g.
-  `neoforge_26.3`. NeoForge branches cover the 26.x series only.
+  `neoforge_26.3`. NeoForge branches exist for 26.2 and 26.3 only.
 
 Branches are independent siblings, not a line you move "backward" or
 "forward" through. A new version branch is created once, by branching off
@@ -39,6 +39,7 @@ one branch gets cherry-picked across, it isn't merged between them.
 | Branch            | Minecraft     | Status    |
 |--------------------|---------------|-----------|
 | `fabric_26.3`      | 26.3 and later (tag only tested versions) | confirmed working |
+| `neoforge_26.2`    | 26.2 and later (tag only tested versions) | confirmed working |
 | `fabric_1.21.11`   | 1.21.11       | confirmed working |
 | `fabric_1.20.5`    | 1.20.5, 1.20.6 | confirmed working |
 
@@ -54,19 +55,22 @@ same version number means the same features. A fix that only applies to
 one loader bumps the patch version on that branch only (e.g. NeoForge
 `2.2.1` while Fabric stays at `2.2.0`).
 
+The one exception is `neoforge_26.2` (`2.1.0`), which already includes the
+search lock button that `fabric_26.2` (`2.1.0`) does not have.
+
 ### Names
 
-File naming: `chestifier-<minecraft_version>_v<mod_version>_<loader>.jar`,
+File naming: `chestifier-<minecraft_version>_v<mod_version>-<loader>.jar`,
 where `<loader>` is `fabric` or `neoforge`, e.g.
 
 ```
-chestifier-26.3_v2.2.0_fabric.jar
-chestifier-26.3_v2.2.0_neoforge.jar
+chestifier-26.3_v2.2.0-fabric.jar
+chestifier-26.3_v2.2.0-neoforge.jar
 ```
 
-Tag naming: `<minecraft_version>_v<mod_version>_<loader>`, e.g.
+Tag naming: `<minecraft_version>_v<mod_version>-<loader>`, e.g.
 
 ```
-26.3_v2.2.0_fabric
-26.3_v2.2.0_neoforge
+26.3_v2.2.0-fabric
+26.3_v2.2.0-neoforge
 ```
