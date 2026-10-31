@@ -2,7 +2,7 @@ package dev.alinou.chestifier;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.File;
 import java.io.FileReader;
@@ -18,7 +18,7 @@ public class ConfigurationHandler {
     private static File configFile;
 
     public static void load() {
-        configFile = FabricLoader.getInstance().getConfigDir().resolve("chestifier.json").toFile();
+        configFile = FMLPaths.CONFIGDIR.get().resolve("chestifier.json").toFile();
         if (configFile.exists()) {
             try (FileReader reader = new FileReader(configFile)) {
                 Config loaded = GSON.fromJson(reader, Config.class);

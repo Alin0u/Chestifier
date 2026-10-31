@@ -1,0 +1,28 @@
+modLoader = "javafml"
+loaderVersion = "[12,)"
+license = "MIT"
+
+[[mods]]
+modId = "chestifier"
+version = "${version}"
+displayName = "Chestifier"
+authors = "alinou"
+description = "Move stuff between inventory and chests, sort them, and search items"
+logoFile = "icon.png"
+
+[[mixins]]
+config = "mixins.chestifier.json"
+
+[[dependencies.chestifier]]
+modId = "neoforge"
+type = "required"
+versionRange = "[26.2,)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.chestifier]]
+modId = "minecraft"
+type = "required"
+versionRange = "[26.2,)"
+ordering = "NONE"
+side = "CLIENT"
