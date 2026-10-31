@@ -52,4 +52,12 @@ java {
     withSourcesJar()
 }
 
-jar {}
+def jarName = "${project.archives_base_name}-${project.minecraft_version}_v${project.mod_version}-neoforge"
+
+jar {
+    archiveFileName = "${jarName}.jar"
+}
+
+tasks.named('sourcesJar') {
+    archiveFileName = "${jarName}-sources.jar"
+}
