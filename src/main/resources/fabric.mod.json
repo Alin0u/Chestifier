@@ -16,7 +16,8 @@
     "minecraft": ">=26.4-alpha.0"
   },
   "recommends": {
-    "modmenu": "*"
+    "modmenu": "*",
+    "cloth-config": "*"
   },
   "name": "Chestifier",
   "description": "Move stuff between inventory and chests, sort them, and search items",
