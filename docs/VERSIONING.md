@@ -8,15 +8,10 @@ they were built and launch-tested against**.
 ## Compatibility range
 
 The `minecraft` dependency in `fabric.mod.json` has a lower bound only
-(e.g. `>=26.3`), with no upper bound. CurseForge files cannot be edited
-after upload, so a closed range would make the mod hard-fail on every new
-Minecraft release until a new file is published, even when it works fine.
-
-What the jar claims to support is decided by the game versions tagged on
-CurseForge and Modrinth, not by the open range. Only tag a Minecraft
-version after it has been launch-tested. If a newer version breaks the
-mod, pull the file or note it on the project page, and create a new
-version branch.
+(e.g. `>=26.3`), with no upper bound. The mod is always open to Minecraft
+versions newer than the one it was built for, but there is no guarantee
+that it works on them. Newer versions are used at your
+own risk. If a newer version breaks the mod, pull the file or note it in the comment sections on the platform.
 
 ## Repo layout
 
